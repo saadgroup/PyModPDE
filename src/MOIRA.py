@@ -54,7 +54,7 @@ class DifferentialEquation:
         self.t['variation'] = getattr(self, 'dt')
         self.t['index'] = self.__timeIndex
 
-    def function(self, tn, **kwargs):
+    def function(self, time, **kwargs):
         '''
         a function of the form exp(alpha tn) exp(ikx) exp(iky) ...
         :param tn: time step at which we are applying this function ex: n, n+1, n-1 ...
@@ -62,7 +62,7 @@ class DifferentialEquation:
         :return: a symbolic expression of this function applied at time tn and points <indep var1>,<indep var2> ...
         '''
         keys = list(kwargs.keys())
-        expression = exp(self.t['ampFactor'] * (self.t['sym'] + (tn - self.t['index']) * self.t['variation']))
+        expression = exp(self.t['ampFactor'] * (self.t['sym'] + (time - self.t['index']) * self.t['variation']))
         for var in keys:
             expression *= exp(1j * self.vars[var]['waveNum'] * (
                     self.vars[var]['sym'] + (kwargs[var] - self.vars[var]['index']) * self.vars[var]['variation']))
