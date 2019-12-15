@@ -165,8 +165,8 @@ class DifferentialEquation:
             self.latex_ME['lhs'] += latex(me_lhs)
             for key in coefs.keys():
                 me_rhs += coefs[key] * derivs[key]
-                self.latex_ME['rhs'][key[1:]] = latex(coefs[key] * derivs[key])
-            self.ME = Eq(me_lhs, me_rhs)
+                self.latex_ME['rhs'][key[1:]] = latex(nsimplify(coefs[key] * derivs[key]))
+            self.ME = Eq(me_lhs, nsimplify(me_rhs))
             return True
         except:
             return False
