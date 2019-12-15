@@ -107,7 +107,7 @@ class DifferentialEquation:
                     kwargs[var] = self.vars[direction]['index'] + pt
                 else:
                     kwargs[var] = self.vars[var]['index']
-            expression += coef * self.function(tn=time, **kwargs) / (self.vars[direction]['variation'] ** order)
+            expression += coef * self.function(time=time, **kwargs) / (self.vars[direction]['variation'] ** order)
         return ratsimp(expression)
 
     def modified_equation(self, nterms):
