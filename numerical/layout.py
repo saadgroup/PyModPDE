@@ -172,6 +172,11 @@ class PlotStyling(object):
             disabled=True
         )
 
+        self.savefig_button_widget = widgets.Button(
+            description='save fig',
+            disabled=True
+        )
+
         self.timestep_widget = widgets.IntSlider(
             description='Timestep',
             min=0,
@@ -198,7 +203,8 @@ class PlotStyling(object):
                     self.edit_button_widget,
                     self.progressBar_widget
                 ]),
-                HBox(children=[self.timestep_widget])
+                HBox(children=[self.timestep_widget,
+                               self.savefig_button_widget])
             ])
         self.tabs.append(self.resultTab)
 
@@ -256,6 +262,10 @@ class PlotStyling(object):
 
         self.timestep_widget.observe(self.update_plot,names='value')
         self.edit_button_widget.on_click(self.edit_button_pressed)
+        self.savefig_button_widget.on_click(self.savefig_button_pressed)
+
+    def savefig_button_pressed(self,change):
+        plt.savefig('./CFL_'+str(self.CFL_widget.value)+'_'+'Fr_'+str(self.Fr_widget.value)+'.pdf',transparent=True)
 
     def update_progress_bar(self):
         self.progressBar_widget.max= int(self.tend_widget.value/self.dt_widget.value)
@@ -283,6 +293,7 @@ class PlotStyling(object):
         self.diffusion_coef_widget.disabled=bool
         self.phi0_widget.disabled=bool
         self.timestep_widget.disabled=not bool
+        self.savefig_button_widget.disabled=not bool
 
     def collect_data(self):
         self.data['dt'] = self.dt_widget.value
