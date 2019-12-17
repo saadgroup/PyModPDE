@@ -1,9 +1,7 @@
 # MOIRA
----
 MOIRA is a Python software that generates the modified equation for a time dependent partial differential equation (PDE). Given certain finite difference scheme for the PDE, MOIRA will obtain the amplification factor and return the latex form of the modified equation.
 
 # Usage
----
 To use MOIRA, one have to instantiate a first order Hyperbolic differential equation object by calling its constructor that has the following signature
 ```Python
 HyperbolicDE(dependentVar,independentVars,indices=[i, j, k], timeIndex=n)
@@ -33,7 +31,6 @@ where `nterms` is a positive integer that indicates the total number of terms in
 After calling the member function `modified_equation(...)`, one can call the `latex()` member function that returns the latex representation of the modified equation.
 
 # Sample code snippets
----
 Below are some examples of using the MOIRA software.
 Starting with an example of using `expr(...)` with the advection equation in one dimension using Forward Euler for time discretization and UPWIND for spatial discretization
 
