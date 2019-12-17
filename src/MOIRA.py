@@ -1,4 +1,4 @@
-"""MOIRA.py: symbolic module that generate the modified equation for time dependent partial differential equation
+"""MOIRA.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
 based on the used finite difference scheme."""
 
 __author__     = "Mokbel Karam , James C. Sutherland, and Tony Saad"
@@ -45,7 +45,7 @@ class DifferentialEquation:
     def get_independent_vars(self):
         '''
         Returns:
-            self.__independentVars: a list of independnet variables strings
+            self.__independentVars: a list of independent variables strings
         '''
         return self.__independentVars
 
@@ -98,7 +98,7 @@ class DifferentialEquation:
 
     def stencil_gen(self, points, order):
         '''
-        Finite difference equation based on location of sampled points and derivative order
+        Generates finite difference equation based on the location of sampled points and derivative order
 
         Parameters:
             points (list int): stencil of length N needed ex: [-1,0,1] stencil around 0
@@ -122,7 +122,7 @@ class DifferentialEquation:
 
     def expr(self, points, direction, order, time):
         '''
-        Generate an expression based on the stencil points the direction and order of the derivative and the time at which the expression is evaluated.
+        Generates an expression based on the stencil points, the direction,  order of the derivative, and the time at which the expression is evaluated.
 
         Parameters:
             points (list of int): N points used for the stencil gen function
@@ -155,7 +155,7 @@ class DifferentialEquation:
 
     def modified_equation(self, nterms):
         '''
-        computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
+        Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
         the order of derivatives in the <indep var1> , <indep var2>, and <indep var3> directions, respectively. These are written as
         a_ijk * u_{ijk}.
 
@@ -246,7 +246,7 @@ class DifferentialEquation:
 
 class HyperbolicDE(DifferentialEquation):
     '''
-    Derived of the parent class 'Differential equation'. this class defines set_rhs function and sets the lhs to be
+    Derived of the parent class 'Differential equation'. This class defines set_rhs function and sets the lhs to be
     1rst order derivative in time
     '''
 
