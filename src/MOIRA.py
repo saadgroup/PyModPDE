@@ -1,6 +1,18 @@
+"""MOIRA.py: symbolic module that generate the modified equation for time dependent partial differential equation
+based on the used finite difference scheme."""
+
+__author__     = "Mokbel Karam , James C. Sutherland, and Tony Saad"
+__copyright__  = "Copyright (c) 2019, Mokbel Karam"
+
+__credits__    = ["University of Utah Department of Chemical Engineering"]
+__license__    = "MIT"
+__version__    = "1.0.0"
+__maintainer__ = "Mokbel Karam"
+__email__      = "mokbel.karam@chemeng.utah.edu"
+__status__     = "Production"
+
 from sympy import *
 from itertools import product
-from sympy.utilities.lambdify import lambdify, implemented_function
 
 i, j, k, n = symbols('i j k n')
 
@@ -8,10 +20,12 @@ i, j, k, n = symbols('i j k n')
 class DifferentialEquation:
     def __init__(self, dependentVar, independentVars, indices, timeIndex):
         '''
-        :param dependentVar: string of the dependent variable
-        :param independentVars: list of strings of the independent variables
-        :param indices: list of symbolic variables of the indices used for the location of the independent variables
-        :param timeIndex: symbolic variable for the time index
+        This is a parent class.
+        Parameters:
+            dependentVar (string): the dependent variable name
+            independentVars (list of string): the independent variables names
+            indices (list of symbols): symbols for the indices of the independent variables
+            timeIndex (symbol): symbolic variable for the time index
         '''
         self.__independentVars = independentVars
         self.__dependentVar_name = dependentVar
@@ -29,9 +43,16 @@ class DifferentialEquation:
         self.latex_ME = {'lhs': '', 'rhs': {}}
 
     def get_independent_vars(self):
+        '''
+        Returns:
+            self.__independentVars: a list of independnet variables strings
+        '''
         return self.__independentVars
 
     def __independent_vars(self):
+        '''
+        Define the symbols for the independent variables, differential elements, wave number variables, and indices
+        '''
         self.vars = {}
         self.t = {}
         num = 1
@@ -56,10 +77,17 @@ class DifferentialEquation:
 
     def function(self, time, **kwargs):
         '''
-        a function of the form exp(alpha tn) exp(ikx) exp(iky) ...
-        :param tn: time step at which we are applying this function ex: n, n+1, n-1 ...
-        :param kwargs: the stencile points at which we are applying this function ex: x=i+3, y=j+1 ...
-        :return: a symbolic expression of this function applied at time tn and points <indep var1>,<indep var2> ...
+        This is the function assigned to the dependent variable name. it has the following form exp(alpha tn) exp(ikx) exp(iky) ...
+
+        Parameters:
+            time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1 ...
+            kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1 ...
+
+        Returns:
+            symbolic expression of this function applied at time tn and points <indep var1>,<indep var2> ...
+
+        Examples:
+            >>> <DE>.<dependentVar>(time=n+1, x=i+1, y=j)
         '''
         keys = list(kwargs.keys())
         expression = exp(self.t['ampFactor'] * (self.t['sym'] + (time - self.t['index']) * self.t['variation']))
@@ -70,11 +98,18 @@ class DifferentialEquation:
 
     def stencil_gen(self, points, order):
         '''
-        calling stencil generation function:   stencil_gen([0,1],1,u,t,dt)
-        :param points: stencil of length N needed ex: [-1,0,1] stencil around 0
-        :param order: the order of derivatives d, d<N
-        :return: return the finite difference coefficients along with the points used in a dictionaray
+        Finite difference equation based on location of sampled points and derivative order
+
+        Parameters:
+            points (list int): stencil of length N needed ex: [-1,0,1] stencil around 0
+            order (int > 0): the order of derivatives d, d<N
+
+        Returns:
+             the finite difference coefficients along with the points used in a dictionary
                 {'points':[],'coefs':[]}
+
+        Examples:
+            >>> <DE>.stencil_gen(points=[-1,0],order=1)
         '''
         numPts = len(points)
         M = []
@@ -87,11 +122,19 @@ class DifferentialEquation:
 
     def expr(self, points, direction, order, time):
         '''
-        :param points: list of points of size N used for the stencil generation
-        :param direction: string, with the name of the independent variable that indicate the direction of the derivative
-        :param order: int, order of the derivative
-        :param time: symbolic expression, time at which to evaluate the expression. ex: n+1 or n
-        :return: a symbolic expression
+        Generate an expression based on the stencil points the direction and order of the derivative and the time at which the expression is evaluated.
+
+        Parameters:
+            points (list of int): N points used for the stencil gen function
+            direction (string): the name of the independent variable that indicate the direction of the derivative
+            order (int): order of the derivative
+            time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
+
+        Returns:
+            symbolic expression
+
+        Examples:
+             >>> <DE>.expr(points=[-1,0],direction='x',order=1,time=n)
         '''
         points = points
         direction = direction
@@ -115,8 +158,15 @@ class DifferentialEquation:
         computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
         the order of derivatives in the <indep var1> , <indep var2>, and <indep var3> directions, respectively. These are written as
         a_ijk * u_{ijk}.
-        :param nterms: Number of terms to compute in the modified equation
-        :return: bool, true if finished without error, false otherwise
+
+        Parameters:
+            nterms (int):Number of terms to compute in the modified equation
+
+        Returns:
+             bool: true if finished without error, false otherwise
+
+        Examples:
+            >>> <DE>.modified_equation(nterms=2)
         '''
         try:
             A = symbols('A')
@@ -173,7 +223,12 @@ class DifferentialEquation:
 
     def latex(self):
         '''
-        :return: string, the latex representation of the modified equation as ' lhs = rhs '
+        Returns:
+            latex (string): the latex representation of the modified equation as ' lhs = rhs '
+
+        Examples:
+            >>> <DE>.latex()
+
         '''
         strings = {}
         for key in self.latex_ME['rhs'].keys():
@@ -191,16 +246,20 @@ class DifferentialEquation:
 
 class HyperbolicDE(DifferentialEquation):
     '''
-    Derived of the parent class 'Differential equation'. this class define set_rhs function and set the lhs to be
+    Derived of the parent class 'Differential equation'. this class defines set_rhs function and sets the lhs to be
     1rst order derivative in time
     '''
 
     def __init__(self, independentVars, dependentVar, indices=[i, j, k], timeIndex=n):
         '''
-        :param dependentVar: string of the dependent variable
-        :param independentVars: list of strings of the independent variables
-        :param indices: list of symbolic variables of the indices used for the location of the independent variables has default as [i, j, k]
-        :param timeIndex: symbolic variable for the time index has default as n
+        Parameters:
+            dependentVar (string): the dependent variable name
+            independentVars (list of string): the independent variables names
+            indices (list of symbols): symbols for the indices of the independent variables
+            timeIndex (symbol): symbolic variable for the time index
+
+        Examples:
+            >>> DE = HyperbolicDE(independentVars=['x','y'], dependentVar='u', indices=[i, j], timeIndex=n)
         '''
         if len(independentVars) > 3:
             raise Exception(msg='no more than three independent variable')
@@ -218,18 +277,32 @@ class HyperbolicDE(DifferentialEquation):
     def set_rhs(self, expression):
         '''
         set the rhs of the HyperbolicDE
-        :param expression: symbolic expression ( linear combination of expression generated from self.expr )
+        Parameters:
+            expression (symbolic expression): linear combination of expression generated from <DE>.expr(...) or <DE>.<dependentVar>(...)
+
+        Examples:
+            >>> DE = HyperbolicDE(dependentVar="u",independentVars =["x"])
+            >>> a = symbols('a')
+            #using DE.expr(...)
+            >>> advectionTerm = DE.expr(points=[-1, 0],  direction="x", order160=1, time=n)
+            >>> DE.set_rhs(expression= - a * advectionTerm)
+            #or using  DE.<dependentVar>(...)
+            >>> advectionTerm = (DE.u(tn=n, x=i) - DE.u(tn=n, x=i-1))/DE.dx
+            >>> DE.set_rhs(expression= - a * advectionTerm)
+
         '''
         self.rhs = expression
 
     def rhs(self):
         '''
-        :return: expression for the rhs of the differential equation
+        Returns:
+             (expression):  the rhs of the differential equation
         '''
         return self.rhs
 
     def lhs(self):
         '''
-        :return: expression for the lhs of the differential equation
+        Returns:
+            (expression):  the lhs of the differential equation
         '''
         return self.lhs
