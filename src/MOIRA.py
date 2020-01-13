@@ -21,10 +21,10 @@ class DifferentialEquation:
     def __init__(self, dependentVar, independentVars, indices=[i, j, k], timeIndex=n):
         '''
         Parameters:
-            dependentVar (string): the dependent variable name
-            independentVars (list of string): the independent variables names
+            dependentVar (string): name of the dependent variable
+            independentVars (list of string): names of the independent variables
             indices (list of symbols): symbols for the indices of the independent variables
-            timeIndex (symbol): symbolic variable for the time index
+            timeIndex (symbol): symbolic variable of the time index
 
         Examples:
             >>> DE = DifferentialEquation(independentVars=['x', 'y'], dependentVar='u', indices=[i, j], timeIndex=n)
@@ -58,13 +58,13 @@ class DifferentialEquation:
     def get_independent_vars(self):
         '''
         Returns:
-            self.__independentVars: a list of independent variables strings
+            self.__independentVars (list): list of independent variables names
         '''
         return self.__independentVars
 
     def __independent_vars(self):
         '''
-        Define the symbols for the independent variables, differential elements, wave number variables, and indices
+        Defines the symbols for the independent variables, differential elements, wave number variables, and indices
         '''
         self.vars = {}
         self.t = {}
@@ -91,14 +91,14 @@ class DifferentialEquation:
 
     def function(self, time, **kwargs):
         '''
-        This is the function assigned to the dependent variable name. it has the following form exp(alpha tn) exp(ikx) exp(iky) ...
+        The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
 
         Parameters:
-            time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1 ...
-            kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1 ...
+            time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1, ..., <timeIndex\> + number.
+            kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1, ..., <independentVar\> = <spatialIndex\> + number
 
         Returns:
-            symbolic expression of this function applied at time tn and points <indep var1>,<indep var2> ...
+            symbolic expression of this function applied at time index and points
 
         Examples:
             >>> <DE>.<dependentVar>(time=n+1, x=i+1, y=j)
@@ -170,7 +170,7 @@ class DifferentialEquation:
     def modified_equation(self, nterms):
         '''
         Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
-        the order of derivatives in the <indep var1> , <indep var2>, and <indep var3> directions, respectively. These are written as
+        the order of derivatives in the <indep var1\> , <indep var2\>, and <indep var3\> directions, respectively. These are written as
         a_ijk * u_{ijk}.
 
         Parameters:
@@ -238,7 +238,7 @@ class DifferentialEquation:
     def latex(self):
         '''
         Returns:
-            latex (string): the latex representation of the modified equation as ' lhs = rhs '
+            latex (string): Latex representation of the modified equation as ' lhs = rhs '
 
         Examples:
             >>> <DE>.latex()
@@ -265,18 +265,18 @@ class DifferentialEquation:
 
     def set_rhs(self, expression):
         '''
-        set the rhs of the HyperbolicDE
+        sets the rhs of the DifferentialEquation
         Parameters:
-            expression (symbolic expression): linear combination of expression generated from <DE>.expr(...) or <DE>.<dependentVar>(...)
+            expression (symbolic expression): linear combination of expression generated from <DE\>.expr(...) or <DE\>.<dependentVar\>(...)
 
         Examples:
-            >>> DE = HyperbolicDE(dependentVar="u",independentVars =["x"])
+            >>> DE = DifferentialEquation(dependentVar="u",independentVars =["x"])
             >>> a = symbols('a')
             #using DE.expr(...)
-            >>> advectionTerm = DE.expr(points=[-1, 0],  direction="x", order160=1, time=n)
+            >>> advectionTerm = DE.expr(points=[-1, 0],  direction="x", order=1, time=n)
             >>> DE.set_rhs(expression= - a * advectionTerm)
             #or using  DE.<dependentVar>(...)
-            >>> advectionTerm = (DE.u(tn=n, x=i) - DE.u(tn=n, x=i-1))/DE.dx
+            >>> advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
             >>> DE.set_rhs(expression= - a * advectionTerm)
 
         '''
