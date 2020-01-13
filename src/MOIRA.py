@@ -18,29 +18,42 @@ i, j, k, n = symbols('i j k n')
 
 
 class DifferentialEquation:
-    def __init__(self, dependentVar, independentVars, indices, timeIndex):
+    def __init__(self, dependentVar, independentVars, indices=[i, j, k], timeIndex=n):
         '''
-        This is a parent class.
         Parameters:
             dependentVar (string): the dependent variable name
             independentVars (list of string): the independent variables names
             indices (list of symbols): symbols for the indices of the independent variables
             timeIndex (symbol): symbolic variable for the time index
+
+        Examples:
+            >>> DE = DifferentialEquation(independentVars=['x', 'y'], dependentVar='u', indices=[i, j], timeIndex=n)
         '''
-        self.__independentVars = independentVars
-        self.__dependentVar_name = dependentVar
+        if len(independentVars) > 3:
+            raise Exception('No more than three independent variable is allowed!')
+        else:
+            self.__independentVars = independentVars
+            self.__dependentVar_name = dependentVar
 
-        self.__indices = indices
-        self.__timeIndex = timeIndex
+            self.__indices = indices
+            self.__timeIndex = timeIndex
 
-        self.__independent_vars()
+            self.__independent_vars()
 
-        setattr(self, self.__dependentVar_name, self.function)
-        self.indepVarsSym = [self.vars[var]['sym'] for var in self.__independentVars]
-        self.indepVarsSym.append(self.t['sym'])
-        self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
+            setattr(self, self.__dependentVar_name, self.function)
+            self.indepVarsSym = [self.vars[var]['sym'] for var in self.__independentVars]
+            self.indepVarsSym.append(self.t['sym'])
+            self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
 
-        self.latex_ME = {'lhs': '', 'rhs': {}}
+            self.latex_ME = {'lhs': '', 'rhs': {}}
+
+            self.indicies = {}
+            for var in self.__independentVars:
+                self.indicies[var] = self.vars[var]['index']
+            self.lhs = (self.function(self.t['index'] + 1, **self.indicies) - self.function(self.t['index'],
+                                                                                                 **self.indicies)) / \
+                       self.t['variation']
+            self.rhs = None
 
     def get_independent_vars(self):
         '''
@@ -244,36 +257,11 @@ class DifferentialEquation:
             latex_str += strings[i]
         return latex_str
 
-
-class HyperbolicDE(DifferentialEquation):
-    '''
-    Derived of the parent class 'Differential equation'. This class defines set_rhs function and sets the lhs to be
-    1rst order derivative in time
-    '''
-
-    def __init__(self, independentVars, dependentVar, indices=[i, j, k], timeIndex=n):
+    def set_lhs(self):
         '''
-        Parameters:
-            dependentVar (string): the dependent variable name
-            independentVars (list of string): the independent variables names
-            indices (list of symbols): symbols for the indices of the independent variables
-            timeIndex (symbol): symbolic variable for the time index
-
-        Examples:
-            >>> DE = HyperbolicDE(independentVars=['x','y'], dependentVar='u', indices=[i, j], timeIndex=n)
+        This function is not defined yet.
         '''
-        if len(independentVars) > 3:
-            raise Exception(msg='no more than three independent variable')
-        else:
-            super().__init__(dependentVar, independentVars, indices, timeIndex)
-            self.indicies = {}
-            for var in self.get_independent_vars():
-                self.indicies[var] = self.vars[var]['index']
-            self.lhs = (super().function(self.t['index'] + 1, **self.indicies) - super().function(self.t['index'],
-                                                                                                 **self.indicies)) / \
-                       self.t['variation']
-            # self.lhs = super().function( 1, **self.indicies) - super().function(0,**self.indicies)/self.t['variation']
-            self.rhs = None
+        raise Exception('For now we only support by default first order time derivative.')
 
     def set_rhs(self, expression):
         '''
