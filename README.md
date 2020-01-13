@@ -6,7 +6,7 @@ To use MOIRA, one have to instantiate a first order time dependent differential 
 ```Python
 DifferentialEquation(dependentVar,independentVars,indices=[i, j, k], timeIndex=n)
 ```
-Once the user constructed an object of type `HyperbolicDE`, the next step is to start constructing the right hand side for this object. Two methods are available to achieve this: the first is to use the function member `expr` which has the following signature
+Once the user constructed an object of type `DifferentialEquation`, the next step is to start constructing the right hand side for this object. Two methods are available to achieve this: the first is to use the function member `expr` which has the following signature
 ```Python
 expr(points, direction, order, time)
 ```
