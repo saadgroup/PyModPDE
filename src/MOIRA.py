@@ -65,13 +65,14 @@ class DifferentialEquation:
             setattr(self, waveNumName, symbols(waveNumName))
             self.vars[var]['waveNum'] = getattr(self, waveNumName)
             variationName = 'd{}'.format(var)
-            setattr(self, variationName, symbols(variationName))
+            variationSymStr= '\Delta\ {}'.format(var)
+            setattr(self, variationName, symbols(variationSymStr))
             self.vars[var]['variation'] = getattr(self, variationName)
             self.vars[var]['index'] = index
             num += 1
         self.t['sym'] = symbols('t')
         self.t['ampFactor'] = symbols('q')
-        setattr(self, 'dt', symbols('dt'))
+        setattr(self, 'dt', symbols('\Delta{t}'))
         self.t['variation'] = getattr(self, 'dt')
         self.t['index'] = self.__timeIndex
 
