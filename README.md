@@ -2,9 +2,9 @@
 MOIRA is a Python software that generates the modified equation for a time dependent partial differential equation (PDE). Given certain finite difference scheme for the PDE, MOIRA will obtain the amplification factor and return the latex form of the modified equation.
 
 # Usage
-To use MOIRA, one have to instantiate a first order Hyperbolic differential equation object by calling its constructor that has the following signature
+To use MOIRA, one have to instantiate a first order time dependent differential equation object by calling its constructor that has the following signature
 ```Python
-HyperbolicDE(dependentVar,independentVars,indices=[i, j, k], timeIndex=n)
+DifferentialEquation(dependentVar,independentVars,indices=[i, j, k], timeIndex=n)
 ```
 Once the user constructed an object of type `HyperbolicDE`, the next step is to start constructing the right hand side for this object. Two methods are available to achieve this: the first is to use the function member `expr` which has the following signature
 ```Python
@@ -35,13 +35,13 @@ Below are some examples of using the MOIRA software.
 Starting with an example of using `expr(...)` with the advection equation in one dimension using Forward Euler for time discretization and UPWIND for spatial discretization
 
 ```Python
-from src.MOIRA import HyperbolicDE, i, n 
+from src.MOIRA import DifferentialEquation, i, n 
 
 # defining the advection velocity
 a= symbols('a') 
 
-#constructing a hyperbolic differential equation
-DE = HyperbolicDE(dependentVar='u',independentVars=['x']) 
+#constructing a time dependent differential equation
+DE = DifferentialEquation(dependentVar='u',independentVars=['x']) 
 
 # method I of constructing the rhs:
 advectionTerm1 = DE.expr(points=[-1, 0], direction='x', order=1, time=n) 
@@ -59,16 +59,16 @@ pretty_print(DE.latex())
 Similarly, one can use the `<dependentVar>(...)` instead of `expr(...)` to construct the discretization of the rhs 
 
 ```Python
-from src.MOIRA import HyperbolicDE, i, n 
+from src.MOIRA import DifferentialEquation, i, n 
 
 # defining the advection velocity
 a= symbols('a') 
 
-#constructing a hyperbolic differential equation
-DE = HyperbolicDE(dependentVar='u',independentVars=['x']) 
+#constructing a time dependent differential equation
+DE = DifferentialEquation(dependentVar='u',independentVars=['x']) 
 
 # method II of constructing the rhs:
-advectionTerm = (DE.u(tn=n, x=i) - DE.u(tn=n, x=i-1))/DE.dx 
+advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx 
 
 # setting the rhs of the differential equation
 DE.set_rhs(- a * advectionTerm )
