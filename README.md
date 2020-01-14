@@ -1,6 +1,6 @@
 # MOIRA
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mk-95/modified_equation_code_test/master?filepath=examples.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mk-95/modified_equation_code_test/master?filepath=examples.ipynb) (press launch binder to run the examples.ipynb)
 
 MOIRA is a Python software that generates the modified equation for a time dependent partial differential equation (PDE). Given certain finite difference scheme for the PDE, MOIRA will obtain the amplification factor and return the latex form of the modified equation.
 
