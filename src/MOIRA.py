@@ -221,15 +221,15 @@ class DifferentialEquation:
                 frac = ratsimp(1 / (fac * I ** N))
                 coefficient = simplify(frac * diff_)
                 if coefficient != 0:
-                    coefs['a{}'.format(ies)] = coefficient
+                    coefs['a{}'.format(ies)] = nsimplify(coefficient)
                     derivs['a{}'.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
 
             me_lhs = Derivative(self.dependentVar, self.t['sym'], 1)
             me_rhs = 0
             self.latex_ME['lhs'] += latex(me_lhs)
             for key in coefs.keys():
-                me_rhs += nsimplify(coefs[key]) * derivs[key]
-                self.latex_ME['rhs'][key[1:]] = latex(nsimplify(coefs[key]) * derivs[key])
+                me_rhs += coefs[key] * derivs[key]
+                self.latex_ME['rhs'][key[1:]] = latex(coefs[key] * derivs[key])
             self.ME = Eq(me_lhs, me_rhs)
             return True
         except:
