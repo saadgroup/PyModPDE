@@ -1,0 +1,1087 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>MOIRA API documentation</title>
+<meta name="description" content="MOIRA.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
+based on the used finite difference …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>MOIRA</code></h1>
+</header>
+<section id="section-intro">
+<p>MOIRA.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
+based on the used finite difference scheme.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;MOIRA.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
+based on the used finite difference scheme.&#34;&#34;&#34;
+
+__author__     = &#34;Mokbel Karam , James C. Sutherland, and Tony Saad&#34;
+__copyright__  = &#34;Copyright (c) 2019, Mokbel Karam&#34;
+
+__credits__    = [&#34;University of Utah Department of Chemical Engineering&#34;]
+__license__    = &#34;MIT&#34;
+__version__    = &#34;1.0.0&#34;
+__maintainer__ = &#34;Mokbel Karam&#34;
+__email__      = &#34;mokbel.karam@chemeng.utah.edu&#34;
+__status__     = &#34;Production&#34;
+
+from sympy import *
+from itertools import product
+
+i, j, k, n = symbols(&#39;i j k n&#39;)
+
+
+class DifferentialEquation:
+    def __init__(self, dependentVar, independentVars, indices=[i, j, k], timeIndex=n):
+        &#39;&#39;&#39;
+        Parameters:
+            dependentVar (string): name of the dependent variable
+            independentVars (list of string): names of the independent variables
+            indices (list of symbols): symbols for the indices of the independent variables
+            timeIndex (symbol): symbolic variable of the time index
+
+        Examples:
+            &gt;&gt;&gt; DE = DifferentialEquation(independentVars=[&#39;x&#39;, &#39;y&#39;], dependentVar=&#39;u&#39;, indices=[i, j], timeIndex=n)
+        &#39;&#39;&#39;
+        if len(independentVars) &gt; 3:
+            raise Exception(&#39;No more than three independent variable is allowed!&#39;)
+        else:
+            self.__independentVars = independentVars
+            self.__dependentVar_name = dependentVar
+
+            self.__indices = indices
+            self.__timeIndex = timeIndex
+
+            self.__independent_vars()
+
+            setattr(self, self.__dependentVar_name, self.function)
+            self.indepVarsSym = [self.vars[var][&#39;sym&#39;] for var in self.__independentVars]
+            self.indepVarsSym.append(self.t[&#39;sym&#39;])
+            self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
+
+            self.latex_ME = {&#39;lhs&#39;: &#39;&#39;, &#39;rhs&#39;: {}}
+
+            self.indicies = {}
+            for var in self.__independentVars:
+                self.indicies[var] = self.vars[var][&#39;index&#39;]
+            self.lhs = (self.function(self.t[&#39;index&#39;] + 1, **self.indicies) - self.function(self.t[&#39;index&#39;],
+                                                                                                 **self.indicies)) / \
+                       self.t[&#39;variation&#39;]
+            self.rhs = None
+
+    def get_independent_vars(self):
+        &#39;&#39;&#39;
+        Returns:
+            self.__independentVars (list): list of independent variables names
+        &#39;&#39;&#39;
+        return self.__independentVars
+
+    def __independent_vars(self):
+        &#39;&#39;&#39;
+        Defines the symbols for the independent variables, differential elements, wave number variables, and indices
+        &#39;&#39;&#39;
+        self.vars = {}
+        self.t = {}
+        num = 1
+        for var, index in zip(self.__independentVars, self.__indices):
+            self.vars[var] = {}
+            varName = &#39;indepVar{}&#39;.format(num)
+            setattr(self, varName, symbols(var))
+            self.vars[var][&#39;sym&#39;] = getattr(self, varName)
+            waveNumName = &#39;k{}&#39;.format(num)
+            setattr(self, waveNumName, symbols(waveNumName))
+            self.vars[var][&#39;waveNum&#39;] = getattr(self, waveNumName)
+            variationName = &#39;d{}&#39;.format(var)
+            variationSymStr= &#39;\Delta\ {}&#39;.format(var)
+            setattr(self, variationName, symbols(variationSymStr))
+            self.vars[var][&#39;variation&#39;] = getattr(self, variationName)
+            self.vars[var][&#39;index&#39;] = index
+            num += 1
+        self.t[&#39;sym&#39;] = symbols(&#39;t&#39;)
+        self.t[&#39;ampFactor&#39;] = symbols(&#39;q&#39;)
+        setattr(self, &#39;dt&#39;, symbols(&#39;\Delta{t}&#39;))
+        self.t[&#39;variation&#39;] = getattr(self, &#39;dt&#39;)
+        self.t[&#39;index&#39;] = self.__timeIndex
+
+    def function(self, time, **kwargs):
+        &#39;&#39;&#39;
+        The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
+
+        Parameters:
+            time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1, ..., &lt;timeIndex\&gt; + number.
+            kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1, ..., &lt;independentVar\&gt; = &lt;spatialIndex\&gt; + number
+
+        Returns:
+            symbolic expression of this function applied at time index and points
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+        &#39;&#39;&#39;
+        keys = list(kwargs.keys())
+        expression = exp(self.t[&#39;ampFactor&#39;] * (self.t[&#39;sym&#39;] + (time - self.t[&#39;index&#39;]) * self.t[&#39;variation&#39;]))
+        for var in keys:
+            expression *= exp(1j * self.vars[var][&#39;waveNum&#39;] * (
+                    self.vars[var][&#39;sym&#39;] + (kwargs[var] - self.vars[var][&#39;index&#39;]) * self.vars[var][&#39;variation&#39;]))
+        return expression
+
+    def stencil_gen(self, points, order):
+        &#39;&#39;&#39;
+        Generates finite difference equation based on the location of sampled points and derivative order
+
+        Parameters:
+            points (list int): stencil of length N needed ex: [-1,0,1] stencil around 0
+            order (int &gt; 0): the order of derivatives d, d&lt;N
+
+        Returns:
+             the finite difference coefficients along with the points used in a dictionary
+                {&#39;points&#39;:[],&#39;coefs&#39;:[]}
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
+        &#39;&#39;&#39;
+        numPts = len(points)
+        M = []
+        for i in range(numPts):
+            M.append([s ** i for s in points])
+        M = Matrix(M)
+        b = Matrix([factorial(order) * 1 if j == order else 0 for j in range(numPts)])
+        coefs = list(M.inv() * b)
+        return {&#39;points&#39;: points, &#39;coefs&#39;: coefs}
+
+    def expr(self, points, direction, order, time):
+        &#39;&#39;&#39;
+        Generates an expression based on the stencil points, the direction,  order of the derivative, and the time at which the expression is evaluated.
+
+        Parameters:
+            points (list of int): N points used for the stencil gen function
+            direction (string): the name of the independent variable that indicate the direction of the derivative
+            order (int): order of the derivative
+            time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
+
+        Returns:
+            symbolic expression
+
+        Examples:
+             &gt;&gt;&gt; &lt;DE&gt;.expr(points=[-1,0],direction=&#39;x&#39;,order=1,time=n)
+        &#39;&#39;&#39;
+        points = points
+        direction = direction
+        order = order
+        time = time
+        stencil = self.stencil_gen(points, order)
+        expression = 0
+        for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
+
+            kwargs = {}
+            for var in self.__independentVars:
+                if var == direction:
+                    kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
+                else:
+                    kwargs[var] = self.vars[var][&#39;index&#39;]
+            expression += coef * self.function(time=time, **kwargs) / (self.vars[direction][&#39;variation&#39;] ** order)
+        return ratsimp(expression)
+
+    def modified_equation(self, nterms):
+        &#39;&#39;&#39;
+        Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
+        the order of derivatives in the &lt;indep var1\&gt; , &lt;indep var2\&gt;, and &lt;indep var3\&gt; directions, respectively. These are written as
+        a_ijk * u_{ijk}.
+
+        Parameters:
+            nterms (int):Number of terms to compute in the modified equation
+
+        Returns:
+             bool: true if finished without error, false otherwise
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
+        &#39;&#39;&#39;
+        try:
+            A = symbols(&#39;A&#39;)
+            # compute the amplification factor
+            lhs1 = simplify(self.lhs / self.function(self.t[&#39;index&#39;], **self.indicies))
+            rhs1 = simplify(self.rhs / self.function(self.t[&#39;index&#39;], **self.indicies))
+            eq = lhs1 - rhs1
+            eq = eq.subs(exp(self.t[&#39;ampFactor&#39;] * self.t[&#39;variation&#39;]), A)
+            eq = eq.subs(exp(self.t[&#39;variation&#39;] * self.t[&#39;ampFactor&#39;]), A)
+            eq = expand(eq)
+            eq = collect(eq, A)
+            logEqdt = simplify(solve(eq, A)[0])
+            q =  log(logEqdt) / self.t[&#39;variation&#39;]  # amplification factor
+            couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
+                       (sum(i) &lt;= nterms and sum(i) &gt; 0)]
+
+            coefs = {}
+            derivs = {}
+            for couple in couples:
+                wrt_vars = []
+                wrt_wave_num = []
+                waveNum = {}
+                fac = 1
+                N = 0
+                ies = &#39;&#39;
+
+                for num, var in enumerate(self.__independentVars):
+                    wrt_wave_num.append(self.vars[var][&#39;waveNum&#39;])
+                    waveNum[self.vars[var][&#39;waveNum&#39;]] = 0
+                    wrt_wave_num.append(couple[num])
+                    wrt_vars.append(self.vars[var][&#39;sym&#39;])
+                    wrt_vars.append(couple[num])
+                    N = sum(couple)
+                    fac *= factorial(couple[num])
+                    ies += str(couple[num])
+
+                diff_ = diff(q, *wrt_wave_num).subs(waveNum)
+                frac = ratsimp(1 / (fac * I ** N))
+                coefficient = simplify(frac * diff_)
+                if coefficient != 0:
+                    coefs[&#39;a{}&#39;.format(ies)] = coefficient
+                    derivs[&#39;a{}&#39;.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
+
+            me_lhs = Derivative(self.dependentVar, self.t[&#39;sym&#39;], 1)
+            me_rhs = 0
+            self.latex_ME[&#39;lhs&#39;] += latex(me_lhs)
+            for key in coefs.keys():
+                me_rhs += nsimplify(coefs[key]) * derivs[key]
+                self.latex_ME[&#39;rhs&#39;][key[1:]] = latex(nsimplify(coefs[key]) * derivs[key])
+            self.ME = Eq(me_lhs, me_rhs)
+            return True
+        except:
+            return False
+
+    def latex(self):
+        &#39;&#39;&#39;
+        Returns:
+            latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.latex()
+
+        &#39;&#39;&#39;
+        strings = {}
+        for key in self.latex_ME[&#39;rhs&#39;].keys():
+            num = sum([int(x) for x in [char for char in key]])
+            string = self.latex_ME[&#39;rhs&#39;][key]
+            if num in list(strings.keys()):
+                strings[num] += &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
+            else:
+                strings[num] = &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
+        latex_str = self.latex_ME[&#39;lhs&#39;] + &#39; = &#39;
+        for i in sorted(strings.keys()):
+            latex_str += strings[i]
+        return latex_str
+
+    def set_lhs(self):
+        &#39;&#39;&#39;
+        This function is not defined yet.
+        &#39;&#39;&#39;
+        raise Exception(&#39;For now we only support by default first order time derivative.&#39;)
+
+    def set_rhs(self, expression):
+        &#39;&#39;&#39;
+        sets the rhs of the DifferentialEquation
+        Parameters:
+            expression (symbolic expression): linear combination of expression generated from &lt;DE\&gt;.expr(...) or &lt;DE\&gt;.&lt;dependentVar\&gt;(...)
+
+        Examples:
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
+            &gt;&gt;&gt; a = symbols(&#39;a&#39;)
+            #using DE.expr(...)
+            &gt;&gt;&gt; advectionTerm = DE.expr(points=[-1, 0],  direction=&#34;x&#34;, order=1, time=n)
+            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+            #or using  DE.&lt;dependentVar&gt;(...)
+            &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
+            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+
+        &#39;&#39;&#39;
+        self.rhs = expression
+
+    def rhs(self):
+        &#39;&#39;&#39;
+        Returns:
+             (expression):  the rhs of the differential equation
+        &#39;&#39;&#39;
+        return self.rhs
+
+    def lhs(self):
+        &#39;&#39;&#39;
+        Returns:
+            (expression):  the lhs of the differential equation
+        &#39;&#39;&#39;
+        return self.lhs</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="MOIRA.DifferentialEquation"><code class="flex name class">
+<span>class <span class="ident">DifferentialEquation</span></span>
+<span>(</span><span>dependentVar, independentVars, indices=[i, j, k], timeIndex=n)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dependentVar</code></strong> :&ensp;<code>string</code></dt>
+<dd>name of the dependent variable</dd>
+<dt><strong><code>independentVars</code></strong> :&ensp;<code>list</code> of <code>string</code></dt>
+<dd>names of the independent variables</dd>
+<dt><strong><code>indices</code></strong> :&ensp;<code>list</code> of <code>symbols</code></dt>
+<dd>symbols for the indices of the independent variables</dd>
+<dt><strong><code>timeIndex</code></strong> :&ensp;<code>symbol</code></dt>
+<dd>symbolic variable of the time index</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; DE = DifferentialEquation(independentVars=['x', 'y'], dependentVar='u', indices=[i, j], timeIndex=n)
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DifferentialEquation:
+    def __init__(self, dependentVar, independentVars, indices=[i, j, k], timeIndex=n):
+        &#39;&#39;&#39;
+        Parameters:
+            dependentVar (string): name of the dependent variable
+            independentVars (list of string): names of the independent variables
+            indices (list of symbols): symbols for the indices of the independent variables
+            timeIndex (symbol): symbolic variable of the time index
+
+        Examples:
+            &gt;&gt;&gt; DE = DifferentialEquation(independentVars=[&#39;x&#39;, &#39;y&#39;], dependentVar=&#39;u&#39;, indices=[i, j], timeIndex=n)
+        &#39;&#39;&#39;
+        if len(independentVars) &gt; 3:
+            raise Exception(&#39;No more than three independent variable is allowed!&#39;)
+        else:
+            self.__independentVars = independentVars
+            self.__dependentVar_name = dependentVar
+
+            self.__indices = indices
+            self.__timeIndex = timeIndex
+
+            self.__independent_vars()
+
+            setattr(self, self.__dependentVar_name, self.function)
+            self.indepVarsSym = [self.vars[var][&#39;sym&#39;] for var in self.__independentVars]
+            self.indepVarsSym.append(self.t[&#39;sym&#39;])
+            self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
+
+            self.latex_ME = {&#39;lhs&#39;: &#39;&#39;, &#39;rhs&#39;: {}}
+
+            self.indicies = {}
+            for var in self.__independentVars:
+                self.indicies[var] = self.vars[var][&#39;index&#39;]
+            self.lhs = (self.function(self.t[&#39;index&#39;] + 1, **self.indicies) - self.function(self.t[&#39;index&#39;],
+                                                                                                 **self.indicies)) / \
+                       self.t[&#39;variation&#39;]
+            self.rhs = None
+
+    def get_independent_vars(self):
+        &#39;&#39;&#39;
+        Returns:
+            self.__independentVars (list): list of independent variables names
+        &#39;&#39;&#39;
+        return self.__independentVars
+
+    def __independent_vars(self):
+        &#39;&#39;&#39;
+        Defines the symbols for the independent variables, differential elements, wave number variables, and indices
+        &#39;&#39;&#39;
+        self.vars = {}
+        self.t = {}
+        num = 1
+        for var, index in zip(self.__independentVars, self.__indices):
+            self.vars[var] = {}
+            varName = &#39;indepVar{}&#39;.format(num)
+            setattr(self, varName, symbols(var))
+            self.vars[var][&#39;sym&#39;] = getattr(self, varName)
+            waveNumName = &#39;k{}&#39;.format(num)
+            setattr(self, waveNumName, symbols(waveNumName))
+            self.vars[var][&#39;waveNum&#39;] = getattr(self, waveNumName)
+            variationName = &#39;d{}&#39;.format(var)
+            variationSymStr= &#39;\Delta\ {}&#39;.format(var)
+            setattr(self, variationName, symbols(variationSymStr))
+            self.vars[var][&#39;variation&#39;] = getattr(self, variationName)
+            self.vars[var][&#39;index&#39;] = index
+            num += 1
+        self.t[&#39;sym&#39;] = symbols(&#39;t&#39;)
+        self.t[&#39;ampFactor&#39;] = symbols(&#39;q&#39;)
+        setattr(self, &#39;dt&#39;, symbols(&#39;\Delta{t}&#39;))
+        self.t[&#39;variation&#39;] = getattr(self, &#39;dt&#39;)
+        self.t[&#39;index&#39;] = self.__timeIndex
+
+    def function(self, time, **kwargs):
+        &#39;&#39;&#39;
+        The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
+
+        Parameters:
+            time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1, ..., &lt;timeIndex\&gt; + number.
+            kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1, ..., &lt;independentVar\&gt; = &lt;spatialIndex\&gt; + number
+
+        Returns:
+            symbolic expression of this function applied at time index and points
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+        &#39;&#39;&#39;
+        keys = list(kwargs.keys())
+        expression = exp(self.t[&#39;ampFactor&#39;] * (self.t[&#39;sym&#39;] + (time - self.t[&#39;index&#39;]) * self.t[&#39;variation&#39;]))
+        for var in keys:
+            expression *= exp(1j * self.vars[var][&#39;waveNum&#39;] * (
+                    self.vars[var][&#39;sym&#39;] + (kwargs[var] - self.vars[var][&#39;index&#39;]) * self.vars[var][&#39;variation&#39;]))
+        return expression
+
+    def stencil_gen(self, points, order):
+        &#39;&#39;&#39;
+        Generates finite difference equation based on the location of sampled points and derivative order
+
+        Parameters:
+            points (list int): stencil of length N needed ex: [-1,0,1] stencil around 0
+            order (int &gt; 0): the order of derivatives d, d&lt;N
+
+        Returns:
+             the finite difference coefficients along with the points used in a dictionary
+                {&#39;points&#39;:[],&#39;coefs&#39;:[]}
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
+        &#39;&#39;&#39;
+        numPts = len(points)
+        M = []
+        for i in range(numPts):
+            M.append([s ** i for s in points])
+        M = Matrix(M)
+        b = Matrix([factorial(order) * 1 if j == order else 0 for j in range(numPts)])
+        coefs = list(M.inv() * b)
+        return {&#39;points&#39;: points, &#39;coefs&#39;: coefs}
+
+    def expr(self, points, direction, order, time):
+        &#39;&#39;&#39;
+        Generates an expression based on the stencil points, the direction,  order of the derivative, and the time at which the expression is evaluated.
+
+        Parameters:
+            points (list of int): N points used for the stencil gen function
+            direction (string): the name of the independent variable that indicate the direction of the derivative
+            order (int): order of the derivative
+            time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
+
+        Returns:
+            symbolic expression
+
+        Examples:
+             &gt;&gt;&gt; &lt;DE&gt;.expr(points=[-1,0],direction=&#39;x&#39;,order=1,time=n)
+        &#39;&#39;&#39;
+        points = points
+        direction = direction
+        order = order
+        time = time
+        stencil = self.stencil_gen(points, order)
+        expression = 0
+        for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
+
+            kwargs = {}
+            for var in self.__independentVars:
+                if var == direction:
+                    kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
+                else:
+                    kwargs[var] = self.vars[var][&#39;index&#39;]
+            expression += coef * self.function(time=time, **kwargs) / (self.vars[direction][&#39;variation&#39;] ** order)
+        return ratsimp(expression)
+
+    def modified_equation(self, nterms):
+        &#39;&#39;&#39;
+        Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
+        the order of derivatives in the &lt;indep var1\&gt; , &lt;indep var2\&gt;, and &lt;indep var3\&gt; directions, respectively. These are written as
+        a_ijk * u_{ijk}.
+
+        Parameters:
+            nterms (int):Number of terms to compute in the modified equation
+
+        Returns:
+             bool: true if finished without error, false otherwise
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
+        &#39;&#39;&#39;
+        try:
+            A = symbols(&#39;A&#39;)
+            # compute the amplification factor
+            lhs1 = simplify(self.lhs / self.function(self.t[&#39;index&#39;], **self.indicies))
+            rhs1 = simplify(self.rhs / self.function(self.t[&#39;index&#39;], **self.indicies))
+            eq = lhs1 - rhs1
+            eq = eq.subs(exp(self.t[&#39;ampFactor&#39;] * self.t[&#39;variation&#39;]), A)
+            eq = eq.subs(exp(self.t[&#39;variation&#39;] * self.t[&#39;ampFactor&#39;]), A)
+            eq = expand(eq)
+            eq = collect(eq, A)
+            logEqdt = simplify(solve(eq, A)[0])
+            q =  log(logEqdt) / self.t[&#39;variation&#39;]  # amplification factor
+            couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
+                       (sum(i) &lt;= nterms and sum(i) &gt; 0)]
+
+            coefs = {}
+            derivs = {}
+            for couple in couples:
+                wrt_vars = []
+                wrt_wave_num = []
+                waveNum = {}
+                fac = 1
+                N = 0
+                ies = &#39;&#39;
+
+                for num, var in enumerate(self.__independentVars):
+                    wrt_wave_num.append(self.vars[var][&#39;waveNum&#39;])
+                    waveNum[self.vars[var][&#39;waveNum&#39;]] = 0
+                    wrt_wave_num.append(couple[num])
+                    wrt_vars.append(self.vars[var][&#39;sym&#39;])
+                    wrt_vars.append(couple[num])
+                    N = sum(couple)
+                    fac *= factorial(couple[num])
+                    ies += str(couple[num])
+
+                diff_ = diff(q, *wrt_wave_num).subs(waveNum)
+                frac = ratsimp(1 / (fac * I ** N))
+                coefficient = simplify(frac * diff_)
+                if coefficient != 0:
+                    coefs[&#39;a{}&#39;.format(ies)] = coefficient
+                    derivs[&#39;a{}&#39;.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
+
+            me_lhs = Derivative(self.dependentVar, self.t[&#39;sym&#39;], 1)
+            me_rhs = 0
+            self.latex_ME[&#39;lhs&#39;] += latex(me_lhs)
+            for key in coefs.keys():
+                me_rhs += nsimplify(coefs[key]) * derivs[key]
+                self.latex_ME[&#39;rhs&#39;][key[1:]] = latex(nsimplify(coefs[key]) * derivs[key])
+            self.ME = Eq(me_lhs, me_rhs)
+            return True
+        except:
+            return False
+
+    def latex(self):
+        &#39;&#39;&#39;
+        Returns:
+            latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.latex()
+
+        &#39;&#39;&#39;
+        strings = {}
+        for key in self.latex_ME[&#39;rhs&#39;].keys():
+            num = sum([int(x) for x in [char for char in key]])
+            string = self.latex_ME[&#39;rhs&#39;][key]
+            if num in list(strings.keys()):
+                strings[num] += &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
+            else:
+                strings[num] = &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
+        latex_str = self.latex_ME[&#39;lhs&#39;] + &#39; = &#39;
+        for i in sorted(strings.keys()):
+            latex_str += strings[i]
+        return latex_str
+
+    def set_lhs(self):
+        &#39;&#39;&#39;
+        This function is not defined yet.
+        &#39;&#39;&#39;
+        raise Exception(&#39;For now we only support by default first order time derivative.&#39;)
+
+    def set_rhs(self, expression):
+        &#39;&#39;&#39;
+        sets the rhs of the DifferentialEquation
+        Parameters:
+            expression (symbolic expression): linear combination of expression generated from &lt;DE\&gt;.expr(...) or &lt;DE\&gt;.&lt;dependentVar\&gt;(...)
+
+        Examples:
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
+            &gt;&gt;&gt; a = symbols(&#39;a&#39;)
+            #using DE.expr(...)
+            &gt;&gt;&gt; advectionTerm = DE.expr(points=[-1, 0],  direction=&#34;x&#34;, order=1, time=n)
+            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+            #or using  DE.&lt;dependentVar&gt;(...)
+            &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
+            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+
+        &#39;&#39;&#39;
+        self.rhs = expression
+
+    def rhs(self):
+        &#39;&#39;&#39;
+        Returns:
+             (expression):  the rhs of the differential equation
+        &#39;&#39;&#39;
+        return self.rhs
+
+    def lhs(self):
+        &#39;&#39;&#39;
+        Returns:
+            (expression):  the lhs of the differential equation
+        &#39;&#39;&#39;
+        return self.lhs</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="MOIRA.DifferentialEquation.expr"><code class="name flex">
+<span>def <span class="ident">expr</span></span>(<span>self, points, direction, order, time)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generates an expression based on the stencil points, the direction,
+order of the derivative, and the time at which the expression is evaluated.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>points</code></strong> :&ensp;<code>list</code> of <code>int</code></dt>
+<dd>N points used for the stencil gen function</dd>
+<dt><strong><code>direction</code></strong> :&ensp;<code>string</code></dt>
+<dd>the name of the independent variable that indicate the direction of the derivative</dd>
+<dt><strong><code>order</code></strong> :&ensp;<code>int</code></dt>
+<dd>order of the derivative</dd>
+<dt><strong><code>time</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
+<dd>time at which to evaluate the expression. ex: n+1 or n</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>symbolic</code> <code>expression</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; &lt;DE&gt;.expr(points=[-1,0],direction='x',order=1,time=n)
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def expr(self, points, direction, order, time):
+    &#39;&#39;&#39;
+    Generates an expression based on the stencil points, the direction,  order of the derivative, and the time at which the expression is evaluated.
+
+    Parameters:
+        points (list of int): N points used for the stencil gen function
+        direction (string): the name of the independent variable that indicate the direction of the derivative
+        order (int): order of the derivative
+        time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
+
+    Returns:
+        symbolic expression
+
+    Examples:
+         &gt;&gt;&gt; &lt;DE&gt;.expr(points=[-1,0],direction=&#39;x&#39;,order=1,time=n)
+    &#39;&#39;&#39;
+    points = points
+    direction = direction
+    order = order
+    time = time
+    stencil = self.stencil_gen(points, order)
+    expression = 0
+    for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
+
+        kwargs = {}
+        for var in self.__independentVars:
+            if var == direction:
+                kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
+            else:
+                kwargs[var] = self.vars[var][&#39;index&#39;]
+        expression += coef * self.function(time=time, **kwargs) / (self.vars[direction][&#39;variation&#39;] ** order)
+    return ratsimp(expression)</code></pre>
+</details>
+</dd>
+<dt id="MOIRA.DifferentialEquation.function"><code class="name flex">
+<span>def <span class="ident">function</span></span>(<span>self, time, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) &hellip;</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>time</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
+<dd>time step at which we are applying this function ex: n, n+1, n-1, &hellip;, &lt;timeIndex> + number.</dd>
+<dt><strong><code>kwargs</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
+<dd>the stencil points at which we are applying this function ex: x=i+3, y=j+1, &hellip;, &lt;independentVar> = &lt;spatialIndex> + number</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>symbolic</code> <code>expression</code> of <code>this</code> <code>function</code> <code>applied</code> <code>at</code> <code>time</code> <code>index</code> <code>and</code> <code>points</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def function(self, time, **kwargs):
+    &#39;&#39;&#39;
+    The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
+
+    Parameters:
+        time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1, ..., &lt;timeIndex\&gt; + number.
+        kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1, ..., &lt;independentVar\&gt; = &lt;spatialIndex\&gt; + number
+
+    Returns:
+        symbolic expression of this function applied at time index and points
+
+    Examples:
+        &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+    &#39;&#39;&#39;
+    keys = list(kwargs.keys())
+    expression = exp(self.t[&#39;ampFactor&#39;] * (self.t[&#39;sym&#39;] + (time - self.t[&#39;index&#39;]) * self.t[&#39;variation&#39;]))
+    for var in keys:
+        expression *= exp(1j * self.vars[var][&#39;waveNum&#39;] * (
+                self.vars[var][&#39;sym&#39;] + (kwargs[var] - self.vars[var][&#39;index&#39;]) * self.vars[var][&#39;variation&#39;]))
+    return expression</code></pre>
+</details>
+</dd>
+<dt id="MOIRA.DifferentialEquation.get_independent_vars"><code class="name flex">
+<span>def <span class="ident">get_independent_vars</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="returns">Returns</h2>
+<dl>
+<dt><code>self.__independentVars</code> (<code>list</code>): <code>list</code> of <code>independent</code> <code>variables</code> <code>names</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_independent_vars(self):
+    &#39;&#39;&#39;
+    Returns:
+        self.__independentVars (list): list of independent variables names
+    &#39;&#39;&#39;
+    return self.__independentVars</code></pre>
+</details>
+</dd>
+<dt id="MOIRA.DifferentialEquation.latex"><code class="name flex">
+<span>def <span class="ident">latex</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>latex</code></strong> :&ensp;<code>string</code></dt>
+<dd>Latex representation of the modified equation as ' lhs = rhs '</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; &lt;DE&gt;.latex()
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def latex(self):
+    &#39;&#39;&#39;
+    Returns:
+        latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
+
+    Examples:
+        &gt;&gt;&gt; &lt;DE&gt;.latex()
+
+    &#39;&#39;&#39;
+    strings = {}
+    for key in self.latex_ME[&#39;rhs&#39;].keys():
+        num = sum([int(x) for x in [char for char in key]])
+        string = self.latex_ME[&#39;rhs&#39;][key]
+        if num in list(strings.keys()):
+            strings[num] += &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
+        else:
+            strings[num] = &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
+    latex_str = self.latex_ME[&#39;lhs&#39;] + &#39; = &#39;
+    for i in sorted(strings.keys()):
+        latex_str += strings[i]
+    return latex_str</code></pre>
+</details>
+</dd>
+<dt id="MOIRA.DifferentialEquation.lhs"><code class="name flex">
+<span>def <span class="ident">lhs</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="returns">Returns</h2>
+<p>(expression):
+the lhs of the differential equation</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lhs(self):
+    &#39;&#39;&#39;
+    Returns:
+        (expression):  the lhs of the differential equation
+    &#39;&#39;&#39;
+    return self.lhs</code></pre>
+</details>
+</dd>
+<dt id="MOIRA.DifferentialEquation.modified_equation"><code class="name flex">
+<span>def <span class="ident">modified_equation</span></span>(<span>self, nterms)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
+the order of derivatives in the &lt;indep var1> , &lt;indep var2>, and &lt;indep var3> directions, respectively. These are written as
+a_ijk * u_{ijk}.</p>
+<h2 id="parameters">Parameters</h2>
+<p>nterms (int):Number of terms to compute in the modified equation</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>true if finished without error, false otherwise</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def modified_equation(self, nterms):
+    &#39;&#39;&#39;
+    Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
+    the order of derivatives in the &lt;indep var1\&gt; , &lt;indep var2\&gt;, and &lt;indep var3\&gt; directions, respectively. These are written as
+    a_ijk * u_{ijk}.
+
+    Parameters:
+        nterms (int):Number of terms to compute in the modified equation
+
+    Returns:
+         bool: true if finished without error, false otherwise
+
+    Examples:
+        &gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
+    &#39;&#39;&#39;
+    try:
+        A = symbols(&#39;A&#39;)
+        # compute the amplification factor
+        lhs1 = simplify(self.lhs / self.function(self.t[&#39;index&#39;], **self.indicies))
+        rhs1 = simplify(self.rhs / self.function(self.t[&#39;index&#39;], **self.indicies))
+        eq = lhs1 - rhs1
+        eq = eq.subs(exp(self.t[&#39;ampFactor&#39;] * self.t[&#39;variation&#39;]), A)
+        eq = eq.subs(exp(self.t[&#39;variation&#39;] * self.t[&#39;ampFactor&#39;]), A)
+        eq = expand(eq)
+        eq = collect(eq, A)
+        logEqdt = simplify(solve(eq, A)[0])
+        q =  log(logEqdt) / self.t[&#39;variation&#39;]  # amplification factor
+        couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
+                   (sum(i) &lt;= nterms and sum(i) &gt; 0)]
+
+        coefs = {}
+        derivs = {}
+        for couple in couples:
+            wrt_vars = []
+            wrt_wave_num = []
+            waveNum = {}
+            fac = 1
+            N = 0
+            ies = &#39;&#39;
+
+            for num, var in enumerate(self.__independentVars):
+                wrt_wave_num.append(self.vars[var][&#39;waveNum&#39;])
+                waveNum[self.vars[var][&#39;waveNum&#39;]] = 0
+                wrt_wave_num.append(couple[num])
+                wrt_vars.append(self.vars[var][&#39;sym&#39;])
+                wrt_vars.append(couple[num])
+                N = sum(couple)
+                fac *= factorial(couple[num])
+                ies += str(couple[num])
+
+            diff_ = diff(q, *wrt_wave_num).subs(waveNum)
+            frac = ratsimp(1 / (fac * I ** N))
+            coefficient = simplify(frac * diff_)
+            if coefficient != 0:
+                coefs[&#39;a{}&#39;.format(ies)] = coefficient
+                derivs[&#39;a{}&#39;.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
+
+        me_lhs = Derivative(self.dependentVar, self.t[&#39;sym&#39;], 1)
+        me_rhs = 0
+        self.latex_ME[&#39;lhs&#39;] += latex(me_lhs)
+        for key in coefs.keys():
+            me_rhs += nsimplify(coefs[key]) * derivs[key]
+            self.latex_ME[&#39;rhs&#39;][key[1:]] = latex(nsimplify(coefs[key]) * derivs[key])
+        self.ME = Eq(me_lhs, me_rhs)
+        return True
+    except:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="MOIRA.DifferentialEquation.rhs"><code class="name flex">
+<span>def <span class="ident">rhs</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="returns">Returns</h2>
+<p>(expression):
+the rhs of the differential equation</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rhs(self):
+    &#39;&#39;&#39;
+    Returns:
+         (expression):  the rhs of the differential equation
+    &#39;&#39;&#39;
+    return self.rhs</code></pre>
+</details>
+</dd>
+<dt id="MOIRA.DifferentialEquation.set_lhs"><code class="name flex">
+<span>def <span class="ident">set_lhs</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function is not defined yet.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_lhs(self):
+    &#39;&#39;&#39;
+    This function is not defined yet.
+    &#39;&#39;&#39;
+    raise Exception(&#39;For now we only support by default first order time derivative.&#39;)</code></pre>
+</details>
+</dd>
+<dt id="MOIRA.DifferentialEquation.set_rhs"><code class="name flex">
+<span>def <span class="ident">set_rhs</span></span>(<span>self, expression)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>sets the rhs of the DifferentialEquation</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>expression</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
+<dd>linear combination of expression generated from &lt;DE>.expr(&hellip;) or &lt;DE>.&lt;dependentVar>(&hellip;)</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; DE = DifferentialEquation(dependentVar="u",independentVars =["x"])
+&gt;&gt;&gt; a = symbols('a')
+#using DE.expr(...)
+&gt;&gt;&gt; advectionTerm = DE.expr(points=[-1, 0],  direction="x", order=1, time=n)
+&gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+#or using  DE.&lt;dependentVar&gt;(...)
+&gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
+&gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_rhs(self, expression):
+    &#39;&#39;&#39;
+    sets the rhs of the DifferentialEquation
+    Parameters:
+        expression (symbolic expression): linear combination of expression generated from &lt;DE\&gt;.expr(...) or &lt;DE\&gt;.&lt;dependentVar\&gt;(...)
+
+    Examples:
+        &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
+        &gt;&gt;&gt; a = symbols(&#39;a&#39;)
+        #using DE.expr(...)
+        &gt;&gt;&gt; advectionTerm = DE.expr(points=[-1, 0],  direction=&#34;x&#34;, order=1, time=n)
+        &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+        #or using  DE.&lt;dependentVar&gt;(...)
+        &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
+        &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+
+    &#39;&#39;&#39;
+    self.rhs = expression</code></pre>
+</details>
+</dd>
+<dt id="MOIRA.DifferentialEquation.stencil_gen"><code class="name flex">
+<span>def <span class="ident">stencil_gen</span></span>(<span>self, points, order)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generates finite difference equation based on the location of sampled points and derivative order</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>points</code></strong> :&ensp;<code>list</code> <code>int</code></dt>
+<dd>stencil of length N needed ex: [-1,0,1] stencil around 0</dd>
+</dl>
+<p>order (int &gt; 0): the order of derivatives d, d&lt;N</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>the</code> <code>finite</code> <code>difference</code> <code>coefficients</code> <code>along</code> <code>with</code> <code>the</code> <code>points</code> <code>used</code> <code>in</code> <code>a</code> <code>dictionary</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<p>{'points':[],'coefs':[]}</p>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stencil_gen(self, points, order):
+    &#39;&#39;&#39;
+    Generates finite difference equation based on the location of sampled points and derivative order
+
+    Parameters:
+        points (list int): stencil of length N needed ex: [-1,0,1] stencil around 0
+        order (int &gt; 0): the order of derivatives d, d&lt;N
+
+    Returns:
+         the finite difference coefficients along with the points used in a dictionary
+            {&#39;points&#39;:[],&#39;coefs&#39;:[]}
+
+    Examples:
+        &gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
+    &#39;&#39;&#39;
+    numPts = len(points)
+    M = []
+    for i in range(numPts):
+        M.append([s ** i for s in points])
+    M = Matrix(M)
+    b = Matrix([factorial(order) * 1 if j == order else 0 for j in range(numPts)])
+    coefs = list(M.inv() * b)
+    return {&#39;points&#39;: points, &#39;coefs&#39;: coefs}</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="MOIRA.DifferentialEquation" href="#MOIRA.DifferentialEquation">DifferentialEquation</a></code></h4>
+<ul class="">
+<li><code><a title="MOIRA.DifferentialEquation.expr" href="#MOIRA.DifferentialEquation.expr">expr</a></code></li>
+<li><code><a title="MOIRA.DifferentialEquation.function" href="#MOIRA.DifferentialEquation.function">function</a></code></li>
+<li><code><a title="MOIRA.DifferentialEquation.get_independent_vars" href="#MOIRA.DifferentialEquation.get_independent_vars">get_independent_vars</a></code></li>
+<li><code><a title="MOIRA.DifferentialEquation.latex" href="#MOIRA.DifferentialEquation.latex">latex</a></code></li>
+<li><code><a title="MOIRA.DifferentialEquation.lhs" href="#MOIRA.DifferentialEquation.lhs">lhs</a></code></li>
+<li><code><a title="MOIRA.DifferentialEquation.modified_equation" href="#MOIRA.DifferentialEquation.modified_equation">modified_equation</a></code></li>
+<li><code><a title="MOIRA.DifferentialEquation.rhs" href="#MOIRA.DifferentialEquation.rhs">rhs</a></code></li>
+<li><code><a title="MOIRA.DifferentialEquation.set_lhs" href="#MOIRA.DifferentialEquation.set_lhs">set_lhs</a></code></li>
+<li><code><a title="MOIRA.DifferentialEquation.set_rhs" href="#MOIRA.DifferentialEquation.set_rhs">set_rhs</a></code></li>
+<li><code><a title="MOIRA.DifferentialEquation.stencil_gen" href="#MOIRA.DifferentialEquation.stencil_gen">stencil_gen</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
