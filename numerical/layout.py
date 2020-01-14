@@ -55,22 +55,22 @@ class PlotStyling(object):
             description='Color:',
         )
         self.xlim_min_widget = widgets.widgets.FloatText(
-            value=0,
+            value=-4.0,
             description='min xlim:',
             disabled=False
         )
         self.xlim_max_widget = widgets.widgets.FloatText(
-            value=1,
+            value=4.0,
             description='max xlim:',
             disabled=False
         )
         self.ylim_min_widget = widgets.widgets.FloatText(
-            value=-2,
+            value=-0.5,
             description='min ylim:',
             disabled=False
         )
         self.ylim_max_widget = widgets.widgets.FloatText(
-            value=2,
+            value=1.25,
             description='max ylim:',
             disabled=False
         )
@@ -115,7 +115,7 @@ class PlotStyling(object):
 
     def resultsTab(self):
         self.dt_widget = widgets.FloatText(
-            value=0.1,
+            value=0.01,
             description='dt:',
             disabled=False
         )
@@ -125,17 +125,17 @@ class PlotStyling(object):
             disabled=False
         )
         self.tend_widget = widgets.FloatText(
-            value=2.0,
+            value=10.0,
             description='tend:',
             disabled=False
         )
         self.minXlim_widget = widgets.FloatText(
-            value=0.0,
+            value=-4.0,
             description='x-min:',
             disabled=False
         )
         self.maxXlim_widget = widgets.FloatText(
-            value=1.0,
+            value=4.0,
             description='x-max:',
             disabled=False
         )
@@ -147,7 +147,7 @@ class PlotStyling(object):
         )
 
         self.Fr_widget = widgets.FloatText(
-            value=0.1,
+            value=0.0,
             description='Fr:',
             disabled=True
         )
@@ -211,11 +211,13 @@ class PlotStyling(object):
     def numerical_setup(self):
         self.integrator_buttons_widget = widgets.ToggleButtons(
             options=['Forward Euler', 'Backward Euler', 'Crank Nicholson'],
+            value='Backward Euler',
             description='Integrator:',
         )
 
         self.advection_buttons_widget = widgets.ToggleButtons(
             options=['Forward Difference', 'Backward Difference', 'Central Difference'],
+            value='Central Difference',
             description='Advection:',
         )
         self.diffusion_buttons_widget = widgets.ToggleButtons(
@@ -224,7 +226,7 @@ class PlotStyling(object):
         )
 
         self.phi0_widget = widgets.Textarea(
-            value='np.sin(2.0*np.pi*x)',
+            value='np.exp(-x**2/0.25)',
             description='f(t=0):'
         )
         self.advection_vel_widget=widgets.FloatText(
