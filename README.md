@@ -23,7 +23,7 @@ DifferentialEquation(dependentVar,independentVars,indices=[i, j, k], timeIndex=n
 ```
 Once the user constructs an object of type `DifferentialEquation`, the next step is to start constructing the right-hand-side RHS for this equation. Two methods are available to achieve this: the first is to use the member function `expr` which has the following signature
 ```Python
-expr(points, direction, order, time)
+expr(order, direction, time, stencil)
 ```
 The second method is to use the dependent variable `name`, the `indices`, and the differential elements of the independent variable defined by the user, `d<independentVars>`. The signature of the member function `<dependentVars>` is as follow
 ```Python
@@ -59,7 +59,7 @@ a= symbols('a')
 DE = DifferentialEquation(dependentVar='u',independentVars=['x']) 
 
 # method I of constructing the rhs:
-advectionTerm1 = DE.expr(points=[-1, 0], direction='x', order=1, time=n) 
+advectionTerm1 = DE.expr(order=1,  direction='x', time=n, stencil=[-1, 0]) 
 
 # setting the rhs of the differential equation
 DE.set_rhs(- a * advectionTerm1 )
