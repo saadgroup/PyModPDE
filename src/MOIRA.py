@@ -1,15 +1,15 @@
 """MOIRA.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
 based on the used finite difference scheme."""
 
-__author__     = "Mokbel Karam , James C. Sutherland, and Tony Saad"
-__copyright__  = "Copyright (c) 2019, Mokbel Karam"
+__author__ = "Mokbel Karam , James C. Sutherland, and Tony Saad"
+__copyright__ = "Copyright (c) 2019, Mokbel Karam"
 
-__credits__    = ["University of Utah Department of Chemical Engineering"]
-__license__    = "MIT"
-__version__    = "1.0.0"
+__credits__ = ["University of Utah Department of Chemical Engineering"]
+__license__ = "MIT"
+__version__ = "1.0.0"
 __maintainer__ = "Mokbel Karam"
-__email__      = "mokbel.karam@chemeng.utah.edu"
-__status__     = "Production"
+__email__ = "mokbel.karam@chemeng.utah.edu"
+__status__ = "Production"
 
 from sympy import *
 from itertools import product
@@ -51,7 +51,7 @@ class DifferentialEquation:
             for var in self.__independentVars:
                 self.indicies[var] = self.vars[var]['index']
             self.lhs = (self.function(self.t['index'] + 1, **self.indicies) - self.function(self.t['index'],
-                                                                                                 **self.indicies)) / \
+                                                                                            **self.indicies)) / \
                        self.t['variation']
             self.rhs = None
 
@@ -78,7 +78,7 @@ class DifferentialEquation:
             setattr(self, waveNumName, symbols(waveNumName))
             self.vars[var]['waveNum'] = getattr(self, waveNumName)
             variationName = 'd{}'.format(var)
-            variationSymStr= '\Delta\ {}'.format(var)
+            variationSymStr = '\Delta\ {}'.format(var)
             setattr(self, variationName, symbols(variationSymStr))
             self.vars[var]['variation'] = getattr(self, variationName)
             self.vars[var]['index'] = index
@@ -189,7 +189,7 @@ class DifferentialEquation:
             eq = expand(eq)
             eq = collect(eq, A)
             logEqdt = simplify(solve(eq, A)[0])
-            q =  log(logEqdt) / self.t['variation']  # amplification factor
+            q = log(logEqdt) / self.t['variation']  # amplification factor
             couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
                        (sum(i) <= nterms and sum(i) > 0)]
 
@@ -244,11 +244,30 @@ class DifferentialEquation:
         for key in self.latex_ME['rhs'].keys():
             num = sum([int(x) for x in [char for char in key]])
             string = self.latex_ME['rhs'][key]
+            firstDelPos = string.rfind("{")
+            secondDelPos = string.rfind("}")
+            string = string.replace(string[firstDelPos:secondDelPos + 1], "")
+
+            var_string = " " + string[-1] + " "
+            string = string[:-1]
+            rPartialPos = string.rfind("partial")
+            varNewPos = string[:rPartialPos].rfind("}")
+            string = string[:varNewPos] + var_string + string[varNewPos:]
             if num in list(strings.keys()):
                 strings[num] += ' ' + string if string[0] == '-' else ' + ' + string
             else:
                 strings[num] = ' ' + string if string[0] == '-' else ' + ' + string
-        latex_str = self.latex_ME['lhs'] + ' = '
+        lhs_string = self.latex_ME['lhs']
+        firstDelPos = lhs_string.rfind("{")
+        secondDelPos = lhs_string.rfind("}")
+        lhs_string = lhs_string.replace(lhs_string[firstDelPos:secondDelPos + 1], "")
+        var_string = " " + lhs_string[-1] + " "
+        lhs_string = lhs_string[:-1]
+        rPartialPos = lhs_string.rfind("partial")
+        varNewPos = lhs_string[:rPartialPos].rfind("}")
+        lhs_string = lhs_string[:varNewPos] + var_string + lhs_string[varNewPos:]
+
+        latex_str = lhs_string + ' = '
         for i in sorted(strings.keys()):
             latex_str += strings[i]
         return latex_str
