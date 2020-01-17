@@ -134,21 +134,21 @@ class DifferentialEquation:
         coefs = list(M.inv() * b)
         return {'points': points, 'coefs': coefs}
 
-    def expr(self, stencil, direction, order, time):
+    def expr(self, order, direction, time, stencil):
         '''
         Generates an expression based on the stencil, the direction,  order of the derivative, and the time at which the expression is evaluated.
 
         Parameters:
-            stencil (list of int): N points used for the stencil gen function
-            direction (string): the name of the independent variable that indicate the direction of the derivative
             order (int): order of the derivative
+            direction (string): the name of the independent variable that indicate the direction of the derivative
             time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
+            stencil (list of int): N points used for the stencil gen function
 
         Returns:
             symbolic expression
 
         Examples:
-             >>> <DE>.expr(stencil=[-1,0],direction='x',order=1,time=n)
+             >>> <DE>.expr(order=1, direction='x', time=n, stencil=[-1,0])
         '''
         stencil = self.stencil_gen(stencil, order)
         expression = 0
@@ -269,7 +269,7 @@ class DifferentialEquation:
             >>> DE = DifferentialEquation(dependentVar="u",independentVars =["x"])
             >>> a = symbols('a')
             #using DE.expr(...)
-            >>> advectionTerm = DE.expr(stencil=[-1, 0],  direction="x", order=1, time=n)
+            >>> advectionTerm = DE.expr(order=1,direction="x",time=n,stencil=[-1, 0])
             >>> DE.set_rhs(expression= - a * advectionTerm)
             #or using  DE.<dependentVar>(...)
             >>> advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
