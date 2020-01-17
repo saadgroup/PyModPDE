@@ -10,8 +10,8 @@ class integrators:
             return self.forward_euler
         elif self.integrator_str=='Backward Euler':
             return  self.backward_euler
-        elif self.integrator_str=='Crank Nicholson':
-            return self.crank_nicholson
+        elif self.integrator_str=='Crank Nicolson':
+            return self.crank_nicolson
 
     def forward_euler(self,rhsfun, phi0, times, bcfun):
         """
@@ -71,9 +71,9 @@ class integrators:
       return phi
 
 
-    def crank_nicholson(self,rhsfun, phi0, times,bcfun):
+    def crank_nicolson(self,rhsfun, phi0, times,bcfun):
         """
-        crank_nicholson - implements the Crank-Nicholson algorithm
+        crank_nicolson - implements the Crank-Nicolson algorithm
         :param rhsFun: the function that computes the RHS of the PDE(s) that we are solving.  Should take one arguments: the value of the solution variables at which the RHS should be evaluated.
         :param phi0: the solution vector at the first element in "times"
         :param times: the vector of times at which we should evaluate the RHS and obtain the solution

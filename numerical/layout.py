@@ -210,7 +210,7 @@ class PlotStyling(object):
 
     def numerical_setup(self):
         self.integrator_buttons_widget = widgets.ToggleButtons(
-            options=['Forward Euler', 'Backward Euler', 'Crank Nicholson'],
+            options=['Forward Euler', 'Backward Euler', 'Crank Nicolson'],
             value='Backward Euler',
             description='Integrator:',
         )
