@@ -40,7 +40,7 @@ class DifferentialEquation:
 
             self.__independent_vars()
 
-            setattr(self, self.__dependentVar_name, self.function)
+            setattr(self, self.__dependentVar_name, self.dependent_var_func)
             self.indepVarsSym = [self.vars[var]['sym'] for var in self.__independentVars]
             self.indepVarsSym.append(self.t['sym'])
             self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
@@ -50,8 +50,8 @@ class DifferentialEquation:
             self.indicies = {}
             for var in self.__independentVars:
                 self.indicies[var] = self.vars[var]['index']
-            self.lhs = (self.function(self.t['index'] + 1, **self.indicies) - self.function(self.t['index'],
-                                                                                            **self.indicies)) / \
+            self.lhs = (self.dependent_var_func(self.t['index'] + 1, **self.indicies) - self.dependent_var_func(self.t['index'],
+                                                                                                                **self.indicies)) / \
                        self.t['variation']
             self.rhs = None
 
@@ -89,7 +89,7 @@ class DifferentialEquation:
         self.t['variation'] = getattr(self, 'dt')
         self.t['index'] = self.__timeIndex
 
-    def function(self, time, **kwargs):
+    def dependent_var_func(self, time, **kwargs):
         '''
         The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
 
@@ -160,7 +160,7 @@ class DifferentialEquation:
                     kwargs[var] = self.vars[direction]['index'] + pt
                 else:
                     kwargs[var] = self.vars[var]['index']
-            expression += coef * self.function(time=time, **kwargs) / (self.vars[direction]['variation'] ** order)
+            expression += coef * self.dependent_var_func(time=time, **kwargs) / (self.vars[direction]['variation'] ** order)
         return ratsimp(expression)
 
     def modified_equation(self, nterms):
@@ -181,8 +181,8 @@ class DifferentialEquation:
         try:
             A = symbols('A')
             # compute the amplification factor
-            lhs1 = simplify(self.lhs / self.function(self.t['index'], **self.indicies))
-            rhs1 = simplify(self.rhs / self.function(self.t['index'], **self.indicies))
+            lhs1 = simplify(self.lhs / self.dependent_var_func(self.t['index'], **self.indicies))
+            rhs1 = simplify(self.rhs / self.dependent_var_func(self.t['index'], **self.indicies))
             eq = lhs1 - rhs1
             eq = eq.subs(exp(self.t['ampFactor'] * self.t['variation']), A)
             eq = eq.subs(exp(self.t['variation'] * self.t['ampFactor']), A)
