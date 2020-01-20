@@ -18,7 +18,8 @@ i, j, k, n = symbols('i j k n')
 
 
 class DifferentialEquation:
-    def __init__(self, dependentVar, independentVars, indices=[i, j, k], timeIndex=n):
+    def __init__(self, dependentVar: str, independentVars: list, indices: list = [i, j, k],
+                 timeIndex: symbol.Symbol = n):
         '''
         Parameters:
             dependentVar (string): name of the dependent variable
@@ -29,6 +30,24 @@ class DifferentialEquation:
         Examples:
             >>> DE = DifferentialEquation(independentVars=['x', 'y'], dependentVar='u', indices=[i, j], timeIndex=n)
         '''
+
+        assert isinstance(dependentVar,
+                          str), 'DifferentialEquation() parameter dependentVar={} not of <class "str">'.format(
+            dependentVar)
+        assert isinstance(independentVars,
+                          list), 'independentVars() parameter independentVars={} not of <class "list">'.format(
+            independentVars)
+        assert isinstance(indices, list), 'indices() parameter indices={} not of <class "list">'.format(indices)
+        assert isinstance(timeIndex,
+                          symbol.Symbol), 'timeIndex() parameter timeIndex={} not of <class "sympy.core.symbol.Symbol">'.format(
+            timeIndex)
+        for indepVar in independentVars:
+            assert isinstance(indepVar, str), 'independentVars members are not of <class "str">'.format(independentVars)
+        for index in indices:
+            assert isinstance(index,
+                              symbol.Symbol), 'indices members are not of <class "sympy.core.symbol.Symbol">'.format(
+                indices)
+
         if len(independentVars) > 3:
             raise Exception('No more than three independent variable is allowed!')
         else:
@@ -50,8 +69,9 @@ class DifferentialEquation:
             self.indicies = {}
             for var in self.__independentVars:
                 self.indicies[var] = self.vars[var]['index']
-            self.lhs = (self.dependent_var_func(self.t['index'] + 1, **self.indicies) - self.dependent_var_func(self.t['index'],
-                                                                                                                **self.indicies)) / \
+            self.lhs = (self.dependent_var_func(self.t['index'] + 1, **self.indicies) - self.dependent_var_func(
+                self.t['index'],
+                **self.indicies)) / \
                        self.t['variation']
             self.rhs = None
 
@@ -103,14 +123,34 @@ class DifferentialEquation:
         Examples:
             >>> <DE>.<dependentVar>(time=n+1, x=i+1, y=j)
         '''
+
+        assert isinstance(time, add.Add) or isinstance(time,
+                                                       symbol.Symbol), 'dependent_var_func() parameter time={} not of <class "sympy.core.add.Add">, or <class "sympy.core.symbol.Symbol">'.format(
+            time)
+        time_symbols = list(time.free_symbols)
+        for sym in time_symbols:
+            assert sym == self.t[
+                'index'], 'dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.'.format(
+                time, self.t['index'])
+
         keys = list(kwargs.keys())
+
+        for var in keys:
+            var_symbols = list(kwargs[var].free_symbols)
+            assert len(
+                var_symbols) == 1, 'dependent_var_func() parameter {}={} inappropriate number of indecies is used for {}'.format(
+                var, kwargs[var], var)
+            assert var_symbols[0] == self.vars[var][
+                'index'], 'dependent_var_func() parameter {}={} other index is used for {}. Use {} index instead.'.format(
+                var, kwargs[var], var, self.vars[var]['index'])
+
         expression = exp(self.t['ampFactor'] * (self.t['sym'] + (time - self.t['index']) * self.t['variation']))
         for var in keys:
             expression *= exp(1j * self.vars[var]['waveNum'] * (
                     self.vars[var]['sym'] + (kwargs[var] - self.vars[var]['index']) * self.vars[var]['variation']))
         return expression
 
-    def stencil_gen(self, points, order):
+    def stencil_gen(self, points: list, order: int):
         '''
         Generates finite difference equation based on the location of sampled points and derivative order
 
@@ -125,6 +165,12 @@ class DifferentialEquation:
         Examples:
             >>> <DE>.stencil_gen(points=[-1,0],order=1)
         '''
+
+        assert isinstance(points, list), 'stencil_gen() parameter points={} not of <class "list">'.format(points)
+        for pt in points:
+            assert isinstance(pt, int), 'elements of points={} are not of <class "int">'.format(points)
+        assert order < len(points), 'Enter a derivative order that is less than the number of points in your stencil.'
+
         numPts = len(points)
         M = []
         for i in range(numPts):
@@ -150,6 +196,21 @@ class DifferentialEquation:
         Examples:
              >>> <DE>.expr(order=1, direction='x', time=n, stencil=[-1,0])
         '''
+
+        assert isinstance(direction, str), 'exp() parameter direcction={} not of <class "str">'.format(direction)
+        assert direction in self.__independentVars, 'direcction={} not an independent variable. indepVar={}'.format(
+            direction, self.__independentVars)
+        assert isinstance(time, add.Add) \
+               or isinstance(time,symbol.Symbol), \
+               'expr() parameter time={} not of <class "sympy.core.add.Add">,' \
+               ' or <class "sympy.core.symbol.Symbol">'.format(time)
+
+        time_symbols = list(time.free_symbols)
+        for sym in time_symbols:
+            assert sym == self.t[
+                'index'], 'dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.'.format(
+                time, self.t['index'])
+
         stencil = self.stencil_gen(stencil, order)
         expression = 0
         for coef, pt in zip(stencil['coefs'], stencil['points']):
@@ -160,7 +221,8 @@ class DifferentialEquation:
                     kwargs[var] = self.vars[direction]['index'] + pt
                 else:
                     kwargs[var] = self.vars[var]['index']
-            expression += coef * self.dependent_var_func(time=time, **kwargs) / (self.vars[direction]['variation'] ** order)
+            expression += coef * self.dependent_var_func(time=time, **kwargs) / (
+                    self.vars[direction]['variation'] ** order)
         return ratsimp(expression)
 
     def modified_equation(self, nterms):
@@ -178,6 +240,9 @@ class DifferentialEquation:
         Examples:
             >>> <DE>.modified_equation(nterms=2)
         '''
+
+        assert nterms > 0, 'modified_equation() member nterms={} has to be greater than zero.'.format(nterms)
+
         try:
             A = symbols('A')
             # compute the amplification factor
@@ -295,6 +360,10 @@ class DifferentialEquation:
             >>> DE.set_rhs(expression= - a * advectionTerm)
 
         '''
+
+        assert not isinstance(expression, str), 'set_rhs() parameter expression={} not a symbolic expression'.format(
+            expression)
+
         self.rhs = expression
 
     def rhs(self):
