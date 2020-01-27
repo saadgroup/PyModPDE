@@ -37,13 +37,11 @@ set_rhs(expression)
 ```
 where `expression` is a symbolic expression of the rhs constructed using the previously described methods.
 
-Now the member function, `modified_equation(...)`, can be used to generate the modified equation up to certain number of terms that the user specify. The signature of `modified_equation` is as follow
+Now the member function, `modified_equation(...)`, can be used to generate the modified equation up to certain number of terms that the user specify, and return the modified equation in latex form. The signature of `modified_equation` is as follow
 ```Python
 modified_equation(nterms)
 ```
 where `nterms` is a positive integer that indicates the total number of terms in the modified equation.
-
-After calling the member function `modified_equation(...)`, one can call the `latex()` member function that returns the latex representation of the modified equation.
 
 # Sample code snippets
 Below are some examples of using the MOIRA software.
@@ -64,11 +62,12 @@ advectionTerm1 = DE.expr(order=1,  direction='x', time=n, stencil=[-1, 0])
 # setting the rhs of the differential equation
 DE.set_rhs(- a * advectionTerm1 )
 
-# computing  the modified equation up to two terms
-DE.modified_equation(nterms=2)
+# displaying the amplification factor
+pretty_print(DE.amp_factor())
 
-# displaying  the modified equation in latex form
-pretty_print(DE.latex())
+# computing and displaying the modified equation up to two terms
+pretty_print(DE.modified_equation(nterms=2))
+
 ```
 
 Similarly, one can use the `<dependentVar>(...)` instead of `expr(...)` to construct the discretization of the rhs 
@@ -88,9 +87,9 @@ advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
 # setting the rhs of the differential equation
 DE.set_rhs(- a * advectionTerm )
 
-# computing  the modified equation up to two terms
-DE.modified_equation(nterms=2)
+# displaying the amplification factor
+pretty_print(DE.amp_factor())
 
-# displaying  the modified equation in latex form
-pretty_print(DE.latex())
+# computing and displaying the modified equation up to two terms
+pretty_print(DE.modified_equation(nterms=2))
 ```
