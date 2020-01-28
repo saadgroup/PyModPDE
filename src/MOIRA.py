@@ -235,7 +235,7 @@ class DifferentialEquation:
             nterms (int):Number of terms to compute in the modified equation
 
         Returns:
-             bool: true if finished without error, false otherwise
+             latex (string): Latex representation of the modified equation as ' lhs = rhs '
 
         Examples:
             >>> <DE>.modified_equation(nterms=2)
@@ -243,66 +243,83 @@ class DifferentialEquation:
 
         assert nterms > 0, 'modified_equation() member nterms={} has to be greater than zero.'.format(nterms)
 
-        try:
-            A = symbols('A')
-            # compute the amplification factor
-            lhs1 = simplify(self.lhs / self.dependent_var_func(self.t['index'], **self.indicies))
-            rhs1 = simplify(self.rhs / self.dependent_var_func(self.t['index'], **self.indicies))
-            eq = lhs1 - rhs1
-            eq = eq.subs(exp(self.t['ampFactor'] * self.t['variation']), A)
-            eq = eq.subs(exp(self.t['variation'] * self.t['ampFactor']), A)
-            eq = expand(eq)
-            eq = collect(eq, A)
-            logEqdt = simplify(solve(eq, A)[0])
-            q = log(logEqdt) / self.t['variation']  # amplification factor
-            couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
-                       (sum(i) <= nterms and sum(i) > 0)]
+        q = self.__solve_amp_factor()
+        couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
+                   (sum(i) <= nterms and sum(i) > 0)]
 
-            coefs = {}
-            derivs = {}
-            for couple in couples:
-                wrt_vars = []
-                wrt_wave_num = []
-                waveNum = {}
-                fac = 1
-                N = 0
-                ies = ''
+        coefs = {}
+        derivs = {}
+        for couple in couples:
+            wrt_vars = []
+            wrt_wave_num = []
+            waveNum = {}
+            fac = 1
+            N = 0
+            ies = ''
 
-                for num, var in enumerate(self.__independentVars):
-                    wrt_wave_num.append(self.vars[var]['waveNum'])
-                    waveNum[self.vars[var]['waveNum']] = 0
-                    wrt_wave_num.append(couple[num])
-                    wrt_vars.append(self.vars[var]['sym'])
-                    wrt_vars.append(couple[num])
-                    N = sum(couple)
-                    fac *= factorial(couple[num])
-                    ies += str(couple[num])
+            for num, var in enumerate(self.__independentVars):
+                wrt_wave_num.append(self.vars[var]['waveNum'])
+                waveNum[self.vars[var]['waveNum']] = 0
+                wrt_wave_num.append(couple[num])
+                wrt_vars.append(self.vars[var]['sym'])
+                wrt_vars.append(couple[num])
+                N = sum(couple)
+                fac *= factorial(couple[num])
+                ies += str(couple[num])
 
-                diff_ = diff(q, *wrt_wave_num).subs(waveNum)
-                frac = ratsimp(1 / (fac * I ** N))
-                coefficient = simplify(frac * diff_)
-                if coefficient != 0:
-                    coefs['a{}'.format(ies)] = nsimplify(coefficient)
-                    derivs['a{}'.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
+            diff_ = diff(q, *wrt_wave_num).subs(waveNum)
+            frac = ratsimp(1 / (fac * I ** N))
+            coefficient = simplify(frac * diff_)
+            if coefficient != 0:
+                coefs['a{}'.format(ies)] = nsimplify(coefficient)
+                derivs['a{}'.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
 
-            me_lhs = Derivative(self.dependentVar, self.t['sym'], 1)
-            me_rhs = 0
-            self.latex_ME['lhs'] += latex(me_lhs)
-            for key in coefs.keys():
-                me_rhs += coefs[key] * derivs[key]
-                self.latex_ME['rhs'][key[1:]] = latex(coefs[key] * derivs[key])
-            self.ME = Eq(me_lhs, me_rhs)
-            return True
-        except:
-            return False
+        me_lhs = Derivative(self.dependentVar, self.t['sym'], 1)
+        me_rhs = 0
+        self.latex_ME['lhs'] += latex(me_lhs)
+        for key in coefs.keys():
+            me_rhs += coefs[key] * derivs[key]
+            self.latex_ME['rhs'][key[1:]] = latex(coefs[key] * derivs[key])
+        self.ME = Eq(me_lhs, me_rhs)
 
-    def latex(self):
+        return self.__latex()
+
+    def __solve_amp_factor(self):
+        '''
+        Solve for the amplification factor of the numerical discritazation of the partial differential equation
+
+        Returns:
+             (expression): symbolic expression of the rhs of the amplification factor
+        '''
+        A = symbols('A')
+        # compute the amplification factor
+        lhs1 = simplify(self.lhs / self.dependent_var_func(self.t['index'], **self.indicies))
+        rhs1 = simplify(self.rhs / self.dependent_var_func(self.t['index'], **self.indicies))
+        eq = lhs1 - rhs1
+        eq = eq.subs(exp(self.t['ampFactor'] * self.t['variation']), A)
+        eq = eq.subs(exp(self.t['variation'] * self.t['ampFactor']), A)
+        eq = expand(eq)
+        eq = collect(eq, A)
+        logEqdt = simplify(solve(eq, A)[0])
+        q = log(logEqdt) / self.t['variation']  # amplification factor
+        return q
+
+    def amp_factor(self):
+        '''
+        Creats the latex representation of the amplification factor
+
+        Returns:
+            latex (string): Latex representation of the amplification factor as ' lhs = rhs '
+        '''
+        lhs = symbols('alpha')
+        rhs = self.__solve_amp_factor()
+        eq = Eq(lhs,rhs)
+        return latex(eq)
+
+    def __latex(self):
         '''
         Returns:
             latex (string): Latex representation of the modified equation as ' lhs = rhs '
-
-        Examples:
-            >>> <DE>.latex()
 
         '''
         strings = {}
