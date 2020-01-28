@@ -321,9 +321,6 @@ class DifferentialEquation:
         Returns:
             latex (string): Latex representation of the modified equation as ' lhs = rhs '
 
-        Examples:
-            >>> <DE>.latex()
-
         '''
         strings = {}
         for key in self.latex_ME['rhs'].keys():
