@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.2" />
-<title>MOIRA API documentation</title>
-<meta name="description" content="MOIRA.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
-based on the used finite difference …" />
+<title>pymodpde API documentation</title>
+<meta name="description" content="pymodpde.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
+based on the used finite …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
@@ -18,27 +18,27 @@ based on the used finite difference …" />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>MOIRA</code></h1>
+<h1 class="title">Module <code>pymodpde</code></h1>
 </header>
 <section id="section-intro">
-<p>MOIRA.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
+<p>pymodpde.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
 based on the used finite difference scheme.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;MOIRA.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
+<pre><code class="python">&#34;&#34;&#34;pymodpde.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
 based on the used finite difference scheme.&#34;&#34;&#34;
 
-__author__     = &#34;Mokbel Karam , James C. Sutherland, and Tony Saad&#34;
-__copyright__  = &#34;Copyright (c) 2019, Mokbel Karam&#34;
+__author__ = &#34;Mokbel Karam , James C. Sutherland, and Tony Saad&#34;
+__copyright__ = &#34;Copyright (c) 2019, Mokbel Karam&#34;
 
-__credits__    = [&#34;University of Utah Department of Chemical Engineering&#34;]
-__license__    = &#34;MIT&#34;
-__version__    = &#34;1.0.0&#34;
+__credits__ = [&#34;University of Utah Department of Chemical Engineering&#34;]
+__license__ = &#34;MIT&#34;
+__version__ = &#34;1.0.0&#34;
 __maintainer__ = &#34;Mokbel Karam&#34;
-__email__      = &#34;mokbel.karam@chemeng.utah.edu&#34;
-__status__     = &#34;Production&#34;
+__email__ = &#34;mokbel.karam@chemeng.utah.edu&#34;
+__status__ = &#34;Production&#34;
 
 from sympy import *
 from itertools import product
@@ -47,7 +47,8 @@ i, j, k, n = symbols(&#39;i j k n&#39;)
 
 
 class DifferentialEquation:
-    def __init__(self, dependentVar, independentVars, indices=[i, j, k], timeIndex=n):
+    def __init__(self, dependentVar: str, independentVars: list, indices: list = [i, j, k],
+                 timeIndex: symbol.Symbol = n):
         &#39;&#39;&#39;
         Parameters:
             dependentVar (string): name of the dependent variable
@@ -58,6 +59,24 @@ class DifferentialEquation:
         Examples:
             &gt;&gt;&gt; DE = DifferentialEquation(independentVars=[&#39;x&#39;, &#39;y&#39;], dependentVar=&#39;u&#39;, indices=[i, j], timeIndex=n)
         &#39;&#39;&#39;
+
+        assert isinstance(dependentVar,
+                          str), &#39;DifferentialEquation() parameter dependentVar={} not of &lt;class &#34;str&#34;&gt;&#39;.format(
+            dependentVar)
+        assert isinstance(independentVars,
+                          list), &#39;independentVars() parameter independentVars={} not of &lt;class &#34;list&#34;&gt;&#39;.format(
+            independentVars)
+        assert isinstance(indices, list), &#39;indices() parameter indices={} not of &lt;class &#34;list&#34;&gt;&#39;.format(indices)
+        assert isinstance(timeIndex,
+                          symbol.Symbol), &#39;timeIndex() parameter timeIndex={} not of &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
+            timeIndex)
+        for indepVar in independentVars:
+            assert isinstance(indepVar, str), &#39;independentVars members are not of &lt;class &#34;str&#34;&gt;&#39;.format(independentVars)
+        for index in indices:
+            assert isinstance(index,
+                              symbol.Symbol), &#39;indices members are not of &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
+                indices)
+
         if len(independentVars) &gt; 3:
             raise Exception(&#39;No more than three independent variable is allowed!&#39;)
         else:
@@ -69,7 +88,7 @@ class DifferentialEquation:
 
             self.__independent_vars()
 
-            setattr(self, self.__dependentVar_name, self.function)
+            setattr(self, self.__dependentVar_name, self.dependent_var_func)
             self.indepVarsSym = [self.vars[var][&#39;sym&#39;] for var in self.__independentVars]
             self.indepVarsSym.append(self.t[&#39;sym&#39;])
             self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
@@ -79,8 +98,9 @@ class DifferentialEquation:
             self.indicies = {}
             for var in self.__independentVars:
                 self.indicies[var] = self.vars[var][&#39;index&#39;]
-            self.lhs = (self.function(self.t[&#39;index&#39;] + 1, **self.indicies) - self.function(self.t[&#39;index&#39;],
-                                                                                                 **self.indicies)) / \
+            self.lhs = (self.dependent_var_func(self.t[&#39;index&#39;] + 1, **self.indicies) - self.dependent_var_func(
+                self.t[&#39;index&#39;],
+                **self.indicies)) / \
                        self.t[&#39;variation&#39;]
             self.rhs = None
 
@@ -107,7 +127,7 @@ class DifferentialEquation:
             setattr(self, waveNumName, symbols(waveNumName))
             self.vars[var][&#39;waveNum&#39;] = getattr(self, waveNumName)
             variationName = &#39;d{}&#39;.format(var)
-            variationSymStr= &#39;\Delta\ {}&#39;.format(var)
+            variationSymStr = &#39;\Delta\ {}&#39;.format(var)
             setattr(self, variationName, symbols(variationSymStr))
             self.vars[var][&#39;variation&#39;] = getattr(self, variationName)
             self.vars[var][&#39;index&#39;] = index
@@ -118,7 +138,7 @@ class DifferentialEquation:
         self.t[&#39;variation&#39;] = getattr(self, &#39;dt&#39;)
         self.t[&#39;index&#39;] = self.__timeIndex
 
-    def function(self, time, **kwargs):
+    def dependent_var_func(self, time, **kwargs):
         &#39;&#39;&#39;
         The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
 
@@ -132,14 +152,34 @@ class DifferentialEquation:
         Examples:
             &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
         &#39;&#39;&#39;
+
+        assert isinstance(time, add.Add) or isinstance(time,
+                                                       symbol.Symbol), &#39;dependent_var_func() parameter time={} not of &lt;class &#34;sympy.core.add.Add&#34;&gt;, or &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
+            time)
+        time_symbols = list(time.free_symbols)
+        for sym in time_symbols:
+            assert sym == self.t[
+                &#39;index&#39;], &#39;dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.&#39;.format(
+                time, self.t[&#39;index&#39;])
+
         keys = list(kwargs.keys())
+
+        for var in keys:
+            var_symbols = list(kwargs[var].free_symbols)
+            assert len(
+                var_symbols) == 1, &#39;dependent_var_func() parameter {}={} inappropriate number of indecies is used for {}&#39;.format(
+                var, kwargs[var], var)
+            assert var_symbols[0] == self.vars[var][
+                &#39;index&#39;], &#39;dependent_var_func() parameter {}={} other index is used for {}. Use {} index instead.&#39;.format(
+                var, kwargs[var], var, self.vars[var][&#39;index&#39;])
+
         expression = exp(self.t[&#39;ampFactor&#39;] * (self.t[&#39;sym&#39;] + (time - self.t[&#39;index&#39;]) * self.t[&#39;variation&#39;]))
         for var in keys:
             expression *= exp(1j * self.vars[var][&#39;waveNum&#39;] * (
                     self.vars[var][&#39;sym&#39;] + (kwargs[var] - self.vars[var][&#39;index&#39;]) * self.vars[var][&#39;variation&#39;]))
         return expression
 
-    def stencil_gen(self, points, order):
+    def stencil_gen(self, points: list, order: int):
         &#39;&#39;&#39;
         Generates finite difference equation based on the location of sampled points and derivative order
 
@@ -154,6 +194,12 @@ class DifferentialEquation:
         Examples:
             &gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
         &#39;&#39;&#39;
+
+        assert isinstance(points, list), &#39;stencil_gen() parameter points={} not of &lt;class &#34;list&#34;&gt;&#39;.format(points)
+        for pt in points:
+            assert isinstance(pt, int), &#39;elements of points={} are not of &lt;class &#34;int&#34;&gt;&#39;.format(points)
+        assert order &lt; len(points), &#39;Enter a derivative order that is less than the number of points in your stencil.&#39;
+
         numPts = len(points)
         M = []
         for i in range(numPts):
@@ -163,27 +209,38 @@ class DifferentialEquation:
         coefs = list(M.inv() * b)
         return {&#39;points&#39;: points, &#39;coefs&#39;: coefs}
 
-    def expr(self, points, direction, order, time):
+    def expr(self, order, direction, time, stencil):
         &#39;&#39;&#39;
-        Generates an expression based on the stencil points, the direction,  order of the derivative, and the time at which the expression is evaluated.
+        Generates an expression based on the stencil, the direction,  order of the derivative, and the time at which the expression is evaluated.
 
         Parameters:
-            points (list of int): N points used for the stencil gen function
-            direction (string): the name of the independent variable that indicate the direction of the derivative
             order (int): order of the derivative
+            direction (string): the name of the independent variable that indicate the direction of the derivative
             time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
+            stencil (list of int): N points used for the stencil gen function
 
         Returns:
             symbolic expression
 
         Examples:
-             &gt;&gt;&gt; &lt;DE&gt;.expr(points=[-1,0],direction=&#39;x&#39;,order=1,time=n)
+             &gt;&gt;&gt; &lt;DE&gt;.expr(order=1, direction=&#39;x&#39;, time=n, stencil=[-1,0])
         &#39;&#39;&#39;
-        points = points
-        direction = direction
-        order = order
-        time = time
-        stencil = self.stencil_gen(points, order)
+
+        assert isinstance(direction, str), &#39;exp() parameter direcction={} not of &lt;class &#34;str&#34;&gt;&#39;.format(direction)
+        assert direction in self.__independentVars, &#39;direcction={} not an independent variable. indepVar={}&#39;.format(
+            direction, self.__independentVars)
+        assert isinstance(time, add.Add) \
+               or isinstance(time,symbol.Symbol), \
+               &#39;expr() parameter time={} not of &lt;class &#34;sympy.core.add.Add&#34;&gt;,&#39; \
+               &#39; or &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(time)
+
+        time_symbols = list(time.free_symbols)
+        for sym in time_symbols:
+            assert sym == self.t[
+                &#39;index&#39;], &#39;dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.&#39;.format(
+                time, self.t[&#39;index&#39;])
+
+        stencil = self.stencil_gen(stencil, order)
         expression = 0
         for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
 
@@ -193,7 +250,8 @@ class DifferentialEquation:
                     kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
                 else:
                     kwargs[var] = self.vars[var][&#39;index&#39;]
-            expression += coef * self.function(time=time, **kwargs) / (self.vars[direction][&#39;variation&#39;] ** order)
+            expression += coef * self.dependent_var_func(time=time, **kwargs) / (
+                    self.vars[direction][&#39;variation&#39;] ** order)
         return ratsimp(expression)
 
     def modified_equation(self, nterms):
@@ -206,675 +264,15 @@ class DifferentialEquation:
             nterms (int):Number of terms to compute in the modified equation
 
         Returns:
-             bool: true if finished without error, false otherwise
+             latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
 
         Examples:
             &gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
         &#39;&#39;&#39;
-        try:
-            A = symbols(&#39;A&#39;)
-            # compute the amplification factor
-            lhs1 = simplify(self.lhs / self.function(self.t[&#39;index&#39;], **self.indicies))
-            rhs1 = simplify(self.rhs / self.function(self.t[&#39;index&#39;], **self.indicies))
-            eq = lhs1 - rhs1
-            eq = eq.subs(exp(self.t[&#39;ampFactor&#39;] * self.t[&#39;variation&#39;]), A)
-            eq = eq.subs(exp(self.t[&#39;variation&#39;] * self.t[&#39;ampFactor&#39;]), A)
-            eq = expand(eq)
-            eq = collect(eq, A)
-            logEqdt = simplify(solve(eq, A)[0])
-            q =  log(logEqdt) / self.t[&#39;variation&#39;]  # amplification factor
-            couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
-                       (sum(i) &lt;= nterms and sum(i) &gt; 0)]
 
-            coefs = {}
-            derivs = {}
-            for couple in couples:
-                wrt_vars = []
-                wrt_wave_num = []
-                waveNum = {}
-                fac = 1
-                N = 0
-                ies = &#39;&#39;
+        assert nterms &gt; 0, &#39;modified_equation() member nterms={} has to be greater than zero.&#39;.format(nterms)
 
-                for num, var in enumerate(self.__independentVars):
-                    wrt_wave_num.append(self.vars[var][&#39;waveNum&#39;])
-                    waveNum[self.vars[var][&#39;waveNum&#39;]] = 0
-                    wrt_wave_num.append(couple[num])
-                    wrt_vars.append(self.vars[var][&#39;sym&#39;])
-                    wrt_vars.append(couple[num])
-                    N = sum(couple)
-                    fac *= factorial(couple[num])
-                    ies += str(couple[num])
-
-                diff_ = diff(q, *wrt_wave_num).subs(waveNum)
-                frac = ratsimp(1 / (fac * I ** N))
-                coefficient = simplify(frac * diff_)
-                if coefficient != 0:
-                    coefs[&#39;a{}&#39;.format(ies)] = coefficient
-                    derivs[&#39;a{}&#39;.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
-
-            me_lhs = Derivative(self.dependentVar, self.t[&#39;sym&#39;], 1)
-            me_rhs = 0
-            self.latex_ME[&#39;lhs&#39;] += latex(me_lhs)
-            for key in coefs.keys():
-                me_rhs += nsimplify(coefs[key]) * derivs[key]
-                self.latex_ME[&#39;rhs&#39;][key[1:]] = latex(nsimplify(coefs[key]) * derivs[key])
-            self.ME = Eq(me_lhs, me_rhs)
-            return True
-        except:
-            return False
-
-    def latex(self):
-        &#39;&#39;&#39;
-        Returns:
-            latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
-
-        Examples:
-            &gt;&gt;&gt; &lt;DE&gt;.latex()
-
-        &#39;&#39;&#39;
-        strings = {}
-        for key in self.latex_ME[&#39;rhs&#39;].keys():
-            num = sum([int(x) for x in [char for char in key]])
-            string = self.latex_ME[&#39;rhs&#39;][key]
-            if num in list(strings.keys()):
-                strings[num] += &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
-            else:
-                strings[num] = &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
-        latex_str = self.latex_ME[&#39;lhs&#39;] + &#39; = &#39;
-        for i in sorted(strings.keys()):
-            latex_str += strings[i]
-        return latex_str
-
-    def set_lhs(self):
-        &#39;&#39;&#39;
-        This function is not defined yet.
-        &#39;&#39;&#39;
-        raise Exception(&#39;For now we only support by default first order time derivative.&#39;)
-
-    def set_rhs(self, expression):
-        &#39;&#39;&#39;
-        sets the rhs of the DifferentialEquation
-        Parameters:
-            expression (symbolic expression): linear combination of expression generated from &lt;DE\&gt;.expr(...) or &lt;DE\&gt;.&lt;dependentVar\&gt;(...)
-
-        Examples:
-            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
-            &gt;&gt;&gt; a = symbols(&#39;a&#39;)
-            #using DE.expr(...)
-            &gt;&gt;&gt; advectionTerm = DE.expr(points=[-1, 0],  direction=&#34;x&#34;, order=1, time=n)
-            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
-            #or using  DE.&lt;dependentVar&gt;(...)
-            &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
-            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
-
-        &#39;&#39;&#39;
-        self.rhs = expression
-
-    def rhs(self):
-        &#39;&#39;&#39;
-        Returns:
-             (expression):  the rhs of the differential equation
-        &#39;&#39;&#39;
-        return self.rhs
-
-    def lhs(self):
-        &#39;&#39;&#39;
-        Returns:
-            (expression):  the lhs of the differential equation
-        &#39;&#39;&#39;
-        return self.lhs</code></pre>
-</details>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-classes">Classes</h2>
-<dl>
-<dt id="MOIRA.DifferentialEquation"><code class="flex name class">
-<span>class <span class="ident">DifferentialEquation</span></span>
-<span>(</span><span>dependentVar, independentVars, indices=[i, j, k], timeIndex=n)</span>
-</code></dt>
-<dd>
-<section class="desc"><h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>dependentVar</code></strong> :&ensp;<code>string</code></dt>
-<dd>name of the dependent variable</dd>
-<dt><strong><code>independentVars</code></strong> :&ensp;<code>list</code> of <code>string</code></dt>
-<dd>names of the independent variables</dd>
-<dt><strong><code>indices</code></strong> :&ensp;<code>list</code> of <code>symbols</code></dt>
-<dd>symbols for the indices of the independent variables</dd>
-<dt><strong><code>timeIndex</code></strong> :&ensp;<code>symbol</code></dt>
-<dd>symbolic variable of the time index</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; DE = DifferentialEquation(independentVars=['x', 'y'], dependentVar='u', indices=[i, j], timeIndex=n)
-</code></pre></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DifferentialEquation:
-    def __init__(self, dependentVar, independentVars, indices=[i, j, k], timeIndex=n):
-        &#39;&#39;&#39;
-        Parameters:
-            dependentVar (string): name of the dependent variable
-            independentVars (list of string): names of the independent variables
-            indices (list of symbols): symbols for the indices of the independent variables
-            timeIndex (symbol): symbolic variable of the time index
-
-        Examples:
-            &gt;&gt;&gt; DE = DifferentialEquation(independentVars=[&#39;x&#39;, &#39;y&#39;], dependentVar=&#39;u&#39;, indices=[i, j], timeIndex=n)
-        &#39;&#39;&#39;
-        if len(independentVars) &gt; 3:
-            raise Exception(&#39;No more than three independent variable is allowed!&#39;)
-        else:
-            self.__independentVars = independentVars
-            self.__dependentVar_name = dependentVar
-
-            self.__indices = indices
-            self.__timeIndex = timeIndex
-
-            self.__independent_vars()
-
-            setattr(self, self.__dependentVar_name, self.function)
-            self.indepVarsSym = [self.vars[var][&#39;sym&#39;] for var in self.__independentVars]
-            self.indepVarsSym.append(self.t[&#39;sym&#39;])
-            self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
-
-            self.latex_ME = {&#39;lhs&#39;: &#39;&#39;, &#39;rhs&#39;: {}}
-
-            self.indicies = {}
-            for var in self.__independentVars:
-                self.indicies[var] = self.vars[var][&#39;index&#39;]
-            self.lhs = (self.function(self.t[&#39;index&#39;] + 1, **self.indicies) - self.function(self.t[&#39;index&#39;],
-                                                                                                 **self.indicies)) / \
-                       self.t[&#39;variation&#39;]
-            self.rhs = None
-
-    def get_independent_vars(self):
-        &#39;&#39;&#39;
-        Returns:
-            self.__independentVars (list): list of independent variables names
-        &#39;&#39;&#39;
-        return self.__independentVars
-
-    def __independent_vars(self):
-        &#39;&#39;&#39;
-        Defines the symbols for the independent variables, differential elements, wave number variables, and indices
-        &#39;&#39;&#39;
-        self.vars = {}
-        self.t = {}
-        num = 1
-        for var, index in zip(self.__independentVars, self.__indices):
-            self.vars[var] = {}
-            varName = &#39;indepVar{}&#39;.format(num)
-            setattr(self, varName, symbols(var))
-            self.vars[var][&#39;sym&#39;] = getattr(self, varName)
-            waveNumName = &#39;k{}&#39;.format(num)
-            setattr(self, waveNumName, symbols(waveNumName))
-            self.vars[var][&#39;waveNum&#39;] = getattr(self, waveNumName)
-            variationName = &#39;d{}&#39;.format(var)
-            variationSymStr= &#39;\Delta\ {}&#39;.format(var)
-            setattr(self, variationName, symbols(variationSymStr))
-            self.vars[var][&#39;variation&#39;] = getattr(self, variationName)
-            self.vars[var][&#39;index&#39;] = index
-            num += 1
-        self.t[&#39;sym&#39;] = symbols(&#39;t&#39;)
-        self.t[&#39;ampFactor&#39;] = symbols(&#39;q&#39;)
-        setattr(self, &#39;dt&#39;, symbols(&#39;\Delta{t}&#39;))
-        self.t[&#39;variation&#39;] = getattr(self, &#39;dt&#39;)
-        self.t[&#39;index&#39;] = self.__timeIndex
-
-    def function(self, time, **kwargs):
-        &#39;&#39;&#39;
-        The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
-
-        Parameters:
-            time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1, ..., &lt;timeIndex\&gt; + number.
-            kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1, ..., &lt;independentVar\&gt; = &lt;spatialIndex\&gt; + number
-
-        Returns:
-            symbolic expression of this function applied at time index and points
-
-        Examples:
-            &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
-        &#39;&#39;&#39;
-        keys = list(kwargs.keys())
-        expression = exp(self.t[&#39;ampFactor&#39;] * (self.t[&#39;sym&#39;] + (time - self.t[&#39;index&#39;]) * self.t[&#39;variation&#39;]))
-        for var in keys:
-            expression *= exp(1j * self.vars[var][&#39;waveNum&#39;] * (
-                    self.vars[var][&#39;sym&#39;] + (kwargs[var] - self.vars[var][&#39;index&#39;]) * self.vars[var][&#39;variation&#39;]))
-        return expression
-
-    def stencil_gen(self, points, order):
-        &#39;&#39;&#39;
-        Generates finite difference equation based on the location of sampled points and derivative order
-
-        Parameters:
-            points (list int): stencil of length N needed ex: [-1,0,1] stencil around 0
-            order (int &gt; 0): the order of derivatives d, d&lt;N
-
-        Returns:
-             the finite difference coefficients along with the points used in a dictionary
-                {&#39;points&#39;:[],&#39;coefs&#39;:[]}
-
-        Examples:
-            &gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
-        &#39;&#39;&#39;
-        numPts = len(points)
-        M = []
-        for i in range(numPts):
-            M.append([s ** i for s in points])
-        M = Matrix(M)
-        b = Matrix([factorial(order) * 1 if j == order else 0 for j in range(numPts)])
-        coefs = list(M.inv() * b)
-        return {&#39;points&#39;: points, &#39;coefs&#39;: coefs}
-
-    def expr(self, points, direction, order, time):
-        &#39;&#39;&#39;
-        Generates an expression based on the stencil points, the direction,  order of the derivative, and the time at which the expression is evaluated.
-
-        Parameters:
-            points (list of int): N points used for the stencil gen function
-            direction (string): the name of the independent variable that indicate the direction of the derivative
-            order (int): order of the derivative
-            time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
-
-        Returns:
-            symbolic expression
-
-        Examples:
-             &gt;&gt;&gt; &lt;DE&gt;.expr(points=[-1,0],direction=&#39;x&#39;,order=1,time=n)
-        &#39;&#39;&#39;
-        points = points
-        direction = direction
-        order = order
-        time = time
-        stencil = self.stencil_gen(points, order)
-        expression = 0
-        for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
-
-            kwargs = {}
-            for var in self.__independentVars:
-                if var == direction:
-                    kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
-                else:
-                    kwargs[var] = self.vars[var][&#39;index&#39;]
-            expression += coef * self.function(time=time, **kwargs) / (self.vars[direction][&#39;variation&#39;] ** order)
-        return ratsimp(expression)
-
-    def modified_equation(self, nterms):
-        &#39;&#39;&#39;
-        Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
-        the order of derivatives in the &lt;indep var1\&gt; , &lt;indep var2\&gt;, and &lt;indep var3\&gt; directions, respectively. These are written as
-        a_ijk * u_{ijk}.
-
-        Parameters:
-            nterms (int):Number of terms to compute in the modified equation
-
-        Returns:
-             bool: true if finished without error, false otherwise
-
-        Examples:
-            &gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
-        &#39;&#39;&#39;
-        try:
-            A = symbols(&#39;A&#39;)
-            # compute the amplification factor
-            lhs1 = simplify(self.lhs / self.function(self.t[&#39;index&#39;], **self.indicies))
-            rhs1 = simplify(self.rhs / self.function(self.t[&#39;index&#39;], **self.indicies))
-            eq = lhs1 - rhs1
-            eq = eq.subs(exp(self.t[&#39;ampFactor&#39;] * self.t[&#39;variation&#39;]), A)
-            eq = eq.subs(exp(self.t[&#39;variation&#39;] * self.t[&#39;ampFactor&#39;]), A)
-            eq = expand(eq)
-            eq = collect(eq, A)
-            logEqdt = simplify(solve(eq, A)[0])
-            q =  log(logEqdt) / self.t[&#39;variation&#39;]  # amplification factor
-            couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
-                       (sum(i) &lt;= nterms and sum(i) &gt; 0)]
-
-            coefs = {}
-            derivs = {}
-            for couple in couples:
-                wrt_vars = []
-                wrt_wave_num = []
-                waveNum = {}
-                fac = 1
-                N = 0
-                ies = &#39;&#39;
-
-                for num, var in enumerate(self.__independentVars):
-                    wrt_wave_num.append(self.vars[var][&#39;waveNum&#39;])
-                    waveNum[self.vars[var][&#39;waveNum&#39;]] = 0
-                    wrt_wave_num.append(couple[num])
-                    wrt_vars.append(self.vars[var][&#39;sym&#39;])
-                    wrt_vars.append(couple[num])
-                    N = sum(couple)
-                    fac *= factorial(couple[num])
-                    ies += str(couple[num])
-
-                diff_ = diff(q, *wrt_wave_num).subs(waveNum)
-                frac = ratsimp(1 / (fac * I ** N))
-                coefficient = simplify(frac * diff_)
-                if coefficient != 0:
-                    coefs[&#39;a{}&#39;.format(ies)] = coefficient
-                    derivs[&#39;a{}&#39;.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
-
-            me_lhs = Derivative(self.dependentVar, self.t[&#39;sym&#39;], 1)
-            me_rhs = 0
-            self.latex_ME[&#39;lhs&#39;] += latex(me_lhs)
-            for key in coefs.keys():
-                me_rhs += nsimplify(coefs[key]) * derivs[key]
-                self.latex_ME[&#39;rhs&#39;][key[1:]] = latex(nsimplify(coefs[key]) * derivs[key])
-            self.ME = Eq(me_lhs, me_rhs)
-            return True
-        except:
-            return False
-
-    def latex(self):
-        &#39;&#39;&#39;
-        Returns:
-            latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
-
-        Examples:
-            &gt;&gt;&gt; &lt;DE&gt;.latex()
-
-        &#39;&#39;&#39;
-        strings = {}
-        for key in self.latex_ME[&#39;rhs&#39;].keys():
-            num = sum([int(x) for x in [char for char in key]])
-            string = self.latex_ME[&#39;rhs&#39;][key]
-            if num in list(strings.keys()):
-                strings[num] += &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
-            else:
-                strings[num] = &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
-        latex_str = self.latex_ME[&#39;lhs&#39;] + &#39; = &#39;
-        for i in sorted(strings.keys()):
-            latex_str += strings[i]
-        return latex_str
-
-    def set_lhs(self):
-        &#39;&#39;&#39;
-        This function is not defined yet.
-        &#39;&#39;&#39;
-        raise Exception(&#39;For now we only support by default first order time derivative.&#39;)
-
-    def set_rhs(self, expression):
-        &#39;&#39;&#39;
-        sets the rhs of the DifferentialEquation
-        Parameters:
-            expression (symbolic expression): linear combination of expression generated from &lt;DE\&gt;.expr(...) or &lt;DE\&gt;.&lt;dependentVar\&gt;(...)
-
-        Examples:
-            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
-            &gt;&gt;&gt; a = symbols(&#39;a&#39;)
-            #using DE.expr(...)
-            &gt;&gt;&gt; advectionTerm = DE.expr(points=[-1, 0],  direction=&#34;x&#34;, order=1, time=n)
-            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
-            #or using  DE.&lt;dependentVar&gt;(...)
-            &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
-            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
-
-        &#39;&#39;&#39;
-        self.rhs = expression
-
-    def rhs(self):
-        &#39;&#39;&#39;
-        Returns:
-             (expression):  the rhs of the differential equation
-        &#39;&#39;&#39;
-        return self.rhs
-
-    def lhs(self):
-        &#39;&#39;&#39;
-        Returns:
-            (expression):  the lhs of the differential equation
-        &#39;&#39;&#39;
-        return self.lhs</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="MOIRA.DifferentialEquation.expr"><code class="name flex">
-<span>def <span class="ident">expr</span></span>(<span>self, points, direction, order, time)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Generates an expression based on the stencil points, the direction,
-order of the derivative, and the time at which the expression is evaluated.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>points</code></strong> :&ensp;<code>list</code> of <code>int</code></dt>
-<dd>N points used for the stencil gen function</dd>
-<dt><strong><code>direction</code></strong> :&ensp;<code>string</code></dt>
-<dd>the name of the independent variable that indicate the direction of the derivative</dd>
-<dt><strong><code>order</code></strong> :&ensp;<code>int</code></dt>
-<dd>order of the derivative</dd>
-<dt><strong><code>time</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
-<dd>time at which to evaluate the expression. ex: n+1 or n</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>symbolic</code> <code>expression</code></dt>
-<dd>&nbsp;</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; &lt;DE&gt;.expr(points=[-1,0],direction='x',order=1,time=n)
-</code></pre></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def expr(self, points, direction, order, time):
-    &#39;&#39;&#39;
-    Generates an expression based on the stencil points, the direction,  order of the derivative, and the time at which the expression is evaluated.
-
-    Parameters:
-        points (list of int): N points used for the stencil gen function
-        direction (string): the name of the independent variable that indicate the direction of the derivative
-        order (int): order of the derivative
-        time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
-
-    Returns:
-        symbolic expression
-
-    Examples:
-         &gt;&gt;&gt; &lt;DE&gt;.expr(points=[-1,0],direction=&#39;x&#39;,order=1,time=n)
-    &#39;&#39;&#39;
-    points = points
-    direction = direction
-    order = order
-    time = time
-    stencil = self.stencil_gen(points, order)
-    expression = 0
-    for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
-
-        kwargs = {}
-        for var in self.__independentVars:
-            if var == direction:
-                kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
-            else:
-                kwargs[var] = self.vars[var][&#39;index&#39;]
-        expression += coef * self.function(time=time, **kwargs) / (self.vars[direction][&#39;variation&#39;] ** order)
-    return ratsimp(expression)</code></pre>
-</details>
-</dd>
-<dt id="MOIRA.DifferentialEquation.function"><code class="name flex">
-<span>def <span class="ident">function</span></span>(<span>self, time, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) &hellip;</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>time</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
-<dd>time step at which we are applying this function ex: n, n+1, n-1, &hellip;, &lt;timeIndex> + number.</dd>
-<dt><strong><code>kwargs</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
-<dd>the stencil points at which we are applying this function ex: x=i+3, y=j+1, &hellip;, &lt;independentVar> = &lt;spatialIndex> + number</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>symbolic</code> <code>expression</code> of <code>this</code> <code>function</code> <code>applied</code> <code>at</code> <code>time</code> <code>index</code> <code>and</code> <code>points</code></dt>
-<dd>&nbsp;</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
-</code></pre></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def function(self, time, **kwargs):
-    &#39;&#39;&#39;
-    The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
-
-    Parameters:
-        time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1, ..., &lt;timeIndex\&gt; + number.
-        kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1, ..., &lt;independentVar\&gt; = &lt;spatialIndex\&gt; + number
-
-    Returns:
-        symbolic expression of this function applied at time index and points
-
-    Examples:
-        &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
-    &#39;&#39;&#39;
-    keys = list(kwargs.keys())
-    expression = exp(self.t[&#39;ampFactor&#39;] * (self.t[&#39;sym&#39;] + (time - self.t[&#39;index&#39;]) * self.t[&#39;variation&#39;]))
-    for var in keys:
-        expression *= exp(1j * self.vars[var][&#39;waveNum&#39;] * (
-                self.vars[var][&#39;sym&#39;] + (kwargs[var] - self.vars[var][&#39;index&#39;]) * self.vars[var][&#39;variation&#39;]))
-    return expression</code></pre>
-</details>
-</dd>
-<dt id="MOIRA.DifferentialEquation.get_independent_vars"><code class="name flex">
-<span>def <span class="ident">get_independent_vars</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><h2 id="returns">Returns</h2>
-<dl>
-<dt><code>self.__independentVars</code> (<code>list</code>): <code>list</code> of <code>independent</code> <code>variables</code> <code>names</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_independent_vars(self):
-    &#39;&#39;&#39;
-    Returns:
-        self.__independentVars (list): list of independent variables names
-    &#39;&#39;&#39;
-    return self.__independentVars</code></pre>
-</details>
-</dd>
-<dt id="MOIRA.DifferentialEquation.latex"><code class="name flex">
-<span>def <span class="ident">latex</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>latex</code></strong> :&ensp;<code>string</code></dt>
-<dd>Latex representation of the modified equation as ' lhs = rhs '</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; &lt;DE&gt;.latex()
-</code></pre></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def latex(self):
-    &#39;&#39;&#39;
-    Returns:
-        latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
-
-    Examples:
-        &gt;&gt;&gt; &lt;DE&gt;.latex()
-
-    &#39;&#39;&#39;
-    strings = {}
-    for key in self.latex_ME[&#39;rhs&#39;].keys():
-        num = sum([int(x) for x in [char for char in key]])
-        string = self.latex_ME[&#39;rhs&#39;][key]
-        if num in list(strings.keys()):
-            strings[num] += &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
-        else:
-            strings[num] = &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
-    latex_str = self.latex_ME[&#39;lhs&#39;] + &#39; = &#39;
-    for i in sorted(strings.keys()):
-        latex_str += strings[i]
-    return latex_str</code></pre>
-</details>
-</dd>
-<dt id="MOIRA.DifferentialEquation.lhs"><code class="name flex">
-<span>def <span class="ident">lhs</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><h2 id="returns">Returns</h2>
-<p>(expression):
-the lhs of the differential equation</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def lhs(self):
-    &#39;&#39;&#39;
-    Returns:
-        (expression):  the lhs of the differential equation
-    &#39;&#39;&#39;
-    return self.lhs</code></pre>
-</details>
-</dd>
-<dt id="MOIRA.DifferentialEquation.modified_equation"><code class="name flex">
-<span>def <span class="ident">modified_equation</span></span>(<span>self, nterms)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
-the order of derivatives in the &lt;indep var1> , &lt;indep var2>, and &lt;indep var3> directions, respectively. These are written as
-a_ijk * u_{ijk}.</p>
-<h2 id="parameters">Parameters</h2>
-<p>nterms (int):Number of terms to compute in the modified equation</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>bool</code></strong></dt>
-<dd>true if finished without error, false otherwise</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
-</code></pre></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def modified_equation(self, nterms):
-    &#39;&#39;&#39;
-    Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
-    the order of derivatives in the &lt;indep var1\&gt; , &lt;indep var2\&gt;, and &lt;indep var3\&gt; directions, respectively. These are written as
-    a_ijk * u_{ijk}.
-
-    Parameters:
-        nterms (int):Number of terms to compute in the modified equation
-
-    Returns:
-         bool: true if finished without error, false otherwise
-
-    Examples:
-        &gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
-    &#39;&#39;&#39;
-    try:
-        A = symbols(&#39;A&#39;)
-        # compute the amplification factor
-        lhs1 = simplify(self.lhs / self.function(self.t[&#39;index&#39;], **self.indicies))
-        rhs1 = simplify(self.rhs / self.function(self.t[&#39;index&#39;], **self.indicies))
-        eq = lhs1 - rhs1
-        eq = eq.subs(exp(self.t[&#39;ampFactor&#39;] * self.t[&#39;variation&#39;]), A)
-        eq = eq.subs(exp(self.t[&#39;variation&#39;] * self.t[&#39;ampFactor&#39;]), A)
-        eq = expand(eq)
-        eq = collect(eq, A)
-        logEqdt = simplify(solve(eq, A)[0])
-        q =  log(logEqdt) / self.t[&#39;variation&#39;]  # amplification factor
+        q = self.__solve_amp_factor()
         couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
                    (sum(i) &lt;= nterms and sum(i) &gt; 0)]
 
@@ -902,22 +300,837 @@ a_ijk * u_{ijk}.</p>
             frac = ratsimp(1 / (fac * I ** N))
             coefficient = simplify(frac * diff_)
             if coefficient != 0:
-                coefs[&#39;a{}&#39;.format(ies)] = coefficient
+                coefs[&#39;a{}&#39;.format(ies)] = nsimplify(coefficient)
                 derivs[&#39;a{}&#39;.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
 
         me_lhs = Derivative(self.dependentVar, self.t[&#39;sym&#39;], 1)
         me_rhs = 0
         self.latex_ME[&#39;lhs&#39;] += latex(me_lhs)
         for key in coefs.keys():
-            me_rhs += nsimplify(coefs[key]) * derivs[key]
-            self.latex_ME[&#39;rhs&#39;][key[1:]] = latex(nsimplify(coefs[key]) * derivs[key])
+            me_rhs += coefs[key] * derivs[key]
+            self.latex_ME[&#39;rhs&#39;][key[1:]] = latex(coefs[key] * derivs[key])
         self.ME = Eq(me_lhs, me_rhs)
-        return True
-    except:
-        return False</code></pre>
+
+        return self.__latex()
+
+    def __solve_amp_factor(self):
+        &#39;&#39;&#39;
+        Solve for the amplification factor of the numerical discritazation of the partial differential equation
+
+        Returns:
+             (expression): symbolic expression of the rhs of the amplification factor
+        &#39;&#39;&#39;
+        A = symbols(&#39;A&#39;)
+        # compute the amplification factor
+        lhs1 = simplify(self.lhs / self.dependent_var_func(self.t[&#39;index&#39;], **self.indicies))
+        rhs1 = simplify(self.rhs / self.dependent_var_func(self.t[&#39;index&#39;], **self.indicies))
+        eq = lhs1 - rhs1
+        eq = eq.subs(exp(self.t[&#39;ampFactor&#39;] * self.t[&#39;variation&#39;]), A)
+        eq = eq.subs(exp(self.t[&#39;variation&#39;] * self.t[&#39;ampFactor&#39;]), A)
+        eq = expand(eq)
+        eq = collect(eq, A)
+        logEqdt = simplify(solve(eq, A)[0])
+        q = log(logEqdt) / self.t[&#39;variation&#39;]  # amplification factor
+        return q
+
+    def amp_factor(self):
+        &#39;&#39;&#39;
+        Creats the latex representation of the amplification factor
+
+        Returns:
+            latex (string): Latex representation of the amplification factor as &#39; lhs = rhs &#39;
+        &#39;&#39;&#39;
+        lhs = symbols(&#39;alpha&#39;)
+        rhs = self.__solve_amp_factor()
+        eq = Eq(lhs,rhs)
+        return latex(eq)
+
+    def __latex(self):
+        &#39;&#39;&#39;
+        Returns:
+            latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
+
+        &#39;&#39;&#39;
+        strings = {}
+        for key in self.latex_ME[&#39;rhs&#39;].keys():
+            num = sum([int(x) for x in [char for char in key]])
+            string = self.latex_ME[&#39;rhs&#39;][key]
+            firstDelPos = string.rfind(&#34;{&#34;)
+            secondDelPos = string.rfind(&#34;}&#34;)
+            string = string.replace(string[firstDelPos:secondDelPos + 1], &#34;&#34;)
+
+            var_string = &#34; &#34; + string[-1] + &#34; &#34;
+            string = string[:-1]
+            rPartialPos = string.rfind(&#34;partial&#34;)
+            varNewPos = string[:rPartialPos].rfind(&#34;}&#34;)
+            string = string[:varNewPos] + var_string + string[varNewPos:]
+            if num in list(strings.keys()):
+                strings[num] += &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
+            else:
+                strings[num] = &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
+        lhs_string = self.latex_ME[&#39;lhs&#39;]
+        firstDelPos = lhs_string.rfind(&#34;{&#34;)
+        secondDelPos = lhs_string.rfind(&#34;}&#34;)
+        lhs_string = lhs_string.replace(lhs_string[firstDelPos:secondDelPos + 1], &#34;&#34;)
+        var_string = &#34; &#34; + lhs_string[-1] + &#34; &#34;
+        lhs_string = lhs_string[:-1]
+        rPartialPos = lhs_string.rfind(&#34;partial&#34;)
+        varNewPos = lhs_string[:rPartialPos].rfind(&#34;}&#34;)
+        lhs_string = lhs_string[:varNewPos] + var_string + lhs_string[varNewPos:]
+
+        latex_str = lhs_string + &#39; = &#39;
+        for i in sorted(strings.keys()):
+            latex_str += strings[i]
+        return latex_str
+
+    def set_lhs(self):
+        &#39;&#39;&#39;
+        This function is not defined yet.
+        &#39;&#39;&#39;
+        raise Exception(&#39;For now we only support by default first order time derivative.&#39;)
+
+    def set_rhs(self, expression):
+        &#39;&#39;&#39;
+        sets the rhs of the DifferentialEquation
+        Parameters:
+            expression (symbolic expression): linear combination of expression generated from &lt;DE\&gt;.expr(...) or &lt;DE\&gt;.&lt;dependentVar\&gt;(...)
+
+        Examples:
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
+            &gt;&gt;&gt; a = symbols(&#39;a&#39;)
+            #using DE.expr(...)
+            &gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction=&#34;x&#34;,time=n,stencil=[-1, 0])
+            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+            #or using  DE.&lt;dependentVar&gt;(...)
+            &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
+            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+
+        &#39;&#39;&#39;
+
+        assert not isinstance(expression, str), &#39;set_rhs() parameter expression={} not a symbolic expression&#39;.format(
+            expression)
+
+        self.rhs = expression
+
+    def rhs(self):
+        &#39;&#39;&#39;
+        Returns:
+             (expression):  the rhs of the differential equation
+        &#39;&#39;&#39;
+        return self.rhs
+
+    def lhs(self):
+        &#39;&#39;&#39;
+        Returns:
+            (expression):  the lhs of the differential equation
+        &#39;&#39;&#39;
+        return self.lhs</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="pymodpde.DifferentialEquation"><code class="flex name class">
+<span>class <span class="ident">DifferentialEquation</span></span>
+<span>(</span><span>dependentVar, independentVars, indices=[i, j, k], timeIndex=n)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dependentVar</code></strong> :&ensp;<code>string</code></dt>
+<dd>name of the dependent variable</dd>
+<dt><strong><code>independentVars</code></strong> :&ensp;<code>list</code> of <code>string</code></dt>
+<dd>names of the independent variables</dd>
+<dt><strong><code>indices</code></strong> :&ensp;<code>list</code> of <code>symbols</code></dt>
+<dd>symbols for the indices of the independent variables</dd>
+<dt><strong><code>timeIndex</code></strong> :&ensp;<code>symbol</code></dt>
+<dd>symbolic variable of the time index</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; DE = DifferentialEquation(independentVars=['x', 'y'], dependentVar='u', indices=[i, j], timeIndex=n)
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DifferentialEquation:
+    def __init__(self, dependentVar: str, independentVars: list, indices: list = [i, j, k],
+                 timeIndex: symbol.Symbol = n):
+        &#39;&#39;&#39;
+        Parameters:
+            dependentVar (string): name of the dependent variable
+            independentVars (list of string): names of the independent variables
+            indices (list of symbols): symbols for the indices of the independent variables
+            timeIndex (symbol): symbolic variable of the time index
+
+        Examples:
+            &gt;&gt;&gt; DE = DifferentialEquation(independentVars=[&#39;x&#39;, &#39;y&#39;], dependentVar=&#39;u&#39;, indices=[i, j], timeIndex=n)
+        &#39;&#39;&#39;
+
+        assert isinstance(dependentVar,
+                          str), &#39;DifferentialEquation() parameter dependentVar={} not of &lt;class &#34;str&#34;&gt;&#39;.format(
+            dependentVar)
+        assert isinstance(independentVars,
+                          list), &#39;independentVars() parameter independentVars={} not of &lt;class &#34;list&#34;&gt;&#39;.format(
+            independentVars)
+        assert isinstance(indices, list), &#39;indices() parameter indices={} not of &lt;class &#34;list&#34;&gt;&#39;.format(indices)
+        assert isinstance(timeIndex,
+                          symbol.Symbol), &#39;timeIndex() parameter timeIndex={} not of &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
+            timeIndex)
+        for indepVar in independentVars:
+            assert isinstance(indepVar, str), &#39;independentVars members are not of &lt;class &#34;str&#34;&gt;&#39;.format(independentVars)
+        for index in indices:
+            assert isinstance(index,
+                              symbol.Symbol), &#39;indices members are not of &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
+                indices)
+
+        if len(independentVars) &gt; 3:
+            raise Exception(&#39;No more than three independent variable is allowed!&#39;)
+        else:
+            self.__independentVars = independentVars
+            self.__dependentVar_name = dependentVar
+
+            self.__indices = indices
+            self.__timeIndex = timeIndex
+
+            self.__independent_vars()
+
+            setattr(self, self.__dependentVar_name, self.dependent_var_func)
+            self.indepVarsSym = [self.vars[var][&#39;sym&#39;] for var in self.__independentVars]
+            self.indepVarsSym.append(self.t[&#39;sym&#39;])
+            self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
+
+            self.latex_ME = {&#39;lhs&#39;: &#39;&#39;, &#39;rhs&#39;: {}}
+
+            self.indicies = {}
+            for var in self.__independentVars:
+                self.indicies[var] = self.vars[var][&#39;index&#39;]
+            self.lhs = (self.dependent_var_func(self.t[&#39;index&#39;] + 1, **self.indicies) - self.dependent_var_func(
+                self.t[&#39;index&#39;],
+                **self.indicies)) / \
+                       self.t[&#39;variation&#39;]
+            self.rhs = None
+
+    def get_independent_vars(self):
+        &#39;&#39;&#39;
+        Returns:
+            self.__independentVars (list): list of independent variables names
+        &#39;&#39;&#39;
+        return self.__independentVars
+
+    def __independent_vars(self):
+        &#39;&#39;&#39;
+        Defines the symbols for the independent variables, differential elements, wave number variables, and indices
+        &#39;&#39;&#39;
+        self.vars = {}
+        self.t = {}
+        num = 1
+        for var, index in zip(self.__independentVars, self.__indices):
+            self.vars[var] = {}
+            varName = &#39;indepVar{}&#39;.format(num)
+            setattr(self, varName, symbols(var))
+            self.vars[var][&#39;sym&#39;] = getattr(self, varName)
+            waveNumName = &#39;k{}&#39;.format(num)
+            setattr(self, waveNumName, symbols(waveNumName))
+            self.vars[var][&#39;waveNum&#39;] = getattr(self, waveNumName)
+            variationName = &#39;d{}&#39;.format(var)
+            variationSymStr = &#39;\Delta\ {}&#39;.format(var)
+            setattr(self, variationName, symbols(variationSymStr))
+            self.vars[var][&#39;variation&#39;] = getattr(self, variationName)
+            self.vars[var][&#39;index&#39;] = index
+            num += 1
+        self.t[&#39;sym&#39;] = symbols(&#39;t&#39;)
+        self.t[&#39;ampFactor&#39;] = symbols(&#39;q&#39;)
+        setattr(self, &#39;dt&#39;, symbols(&#39;\Delta{t}&#39;))
+        self.t[&#39;variation&#39;] = getattr(self, &#39;dt&#39;)
+        self.t[&#39;index&#39;] = self.__timeIndex
+
+    def dependent_var_func(self, time, **kwargs):
+        &#39;&#39;&#39;
+        The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
+
+        Parameters:
+            time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1, ..., &lt;timeIndex\&gt; + number.
+            kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1, ..., &lt;independentVar\&gt; = &lt;spatialIndex\&gt; + number
+
+        Returns:
+            symbolic expression of this function applied at time index and points
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+        &#39;&#39;&#39;
+
+        assert isinstance(time, add.Add) or isinstance(time,
+                                                       symbol.Symbol), &#39;dependent_var_func() parameter time={} not of &lt;class &#34;sympy.core.add.Add&#34;&gt;, or &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
+            time)
+        time_symbols = list(time.free_symbols)
+        for sym in time_symbols:
+            assert sym == self.t[
+                &#39;index&#39;], &#39;dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.&#39;.format(
+                time, self.t[&#39;index&#39;])
+
+        keys = list(kwargs.keys())
+
+        for var in keys:
+            var_symbols = list(kwargs[var].free_symbols)
+            assert len(
+                var_symbols) == 1, &#39;dependent_var_func() parameter {}={} inappropriate number of indecies is used for {}&#39;.format(
+                var, kwargs[var], var)
+            assert var_symbols[0] == self.vars[var][
+                &#39;index&#39;], &#39;dependent_var_func() parameter {}={} other index is used for {}. Use {} index instead.&#39;.format(
+                var, kwargs[var], var, self.vars[var][&#39;index&#39;])
+
+        expression = exp(self.t[&#39;ampFactor&#39;] * (self.t[&#39;sym&#39;] + (time - self.t[&#39;index&#39;]) * self.t[&#39;variation&#39;]))
+        for var in keys:
+            expression *= exp(1j * self.vars[var][&#39;waveNum&#39;] * (
+                    self.vars[var][&#39;sym&#39;] + (kwargs[var] - self.vars[var][&#39;index&#39;]) * self.vars[var][&#39;variation&#39;]))
+        return expression
+
+    def stencil_gen(self, points: list, order: int):
+        &#39;&#39;&#39;
+        Generates finite difference equation based on the location of sampled points and derivative order
+
+        Parameters:
+            points (list int): stencil of length N needed ex: [-1,0,1] stencil around 0
+            order (int &gt; 0): the order of derivatives d, d&lt;N
+
+        Returns:
+             the finite difference coefficients along with the points used in a dictionary
+                {&#39;points&#39;:[],&#39;coefs&#39;:[]}
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
+        &#39;&#39;&#39;
+
+        assert isinstance(points, list), &#39;stencil_gen() parameter points={} not of &lt;class &#34;list&#34;&gt;&#39;.format(points)
+        for pt in points:
+            assert isinstance(pt, int), &#39;elements of points={} are not of &lt;class &#34;int&#34;&gt;&#39;.format(points)
+        assert order &lt; len(points), &#39;Enter a derivative order that is less than the number of points in your stencil.&#39;
+
+        numPts = len(points)
+        M = []
+        for i in range(numPts):
+            M.append([s ** i for s in points])
+        M = Matrix(M)
+        b = Matrix([factorial(order) * 1 if j == order else 0 for j in range(numPts)])
+        coefs = list(M.inv() * b)
+        return {&#39;points&#39;: points, &#39;coefs&#39;: coefs}
+
+    def expr(self, order, direction, time, stencil):
+        &#39;&#39;&#39;
+        Generates an expression based on the stencil, the direction,  order of the derivative, and the time at which the expression is evaluated.
+
+        Parameters:
+            order (int): order of the derivative
+            direction (string): the name of the independent variable that indicate the direction of the derivative
+            time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
+            stencil (list of int): N points used for the stencil gen function
+
+        Returns:
+            symbolic expression
+
+        Examples:
+             &gt;&gt;&gt; &lt;DE&gt;.expr(order=1, direction=&#39;x&#39;, time=n, stencil=[-1,0])
+        &#39;&#39;&#39;
+
+        assert isinstance(direction, str), &#39;exp() parameter direcction={} not of &lt;class &#34;str&#34;&gt;&#39;.format(direction)
+        assert direction in self.__independentVars, &#39;direcction={} not an independent variable. indepVar={}&#39;.format(
+            direction, self.__independentVars)
+        assert isinstance(time, add.Add) \
+               or isinstance(time,symbol.Symbol), \
+               &#39;expr() parameter time={} not of &lt;class &#34;sympy.core.add.Add&#34;&gt;,&#39; \
+               &#39; or &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(time)
+
+        time_symbols = list(time.free_symbols)
+        for sym in time_symbols:
+            assert sym == self.t[
+                &#39;index&#39;], &#39;dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.&#39;.format(
+                time, self.t[&#39;index&#39;])
+
+        stencil = self.stencil_gen(stencil, order)
+        expression = 0
+        for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
+
+            kwargs = {}
+            for var in self.__independentVars:
+                if var == direction:
+                    kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
+                else:
+                    kwargs[var] = self.vars[var][&#39;index&#39;]
+            expression += coef * self.dependent_var_func(time=time, **kwargs) / (
+                    self.vars[direction][&#39;variation&#39;] ** order)
+        return ratsimp(expression)
+
+    def modified_equation(self, nterms):
+        &#39;&#39;&#39;
+        Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
+        the order of derivatives in the &lt;indep var1\&gt; , &lt;indep var2\&gt;, and &lt;indep var3\&gt; directions, respectively. These are written as
+        a_ijk * u_{ijk}.
+
+        Parameters:
+            nterms (int):Number of terms to compute in the modified equation
+
+        Returns:
+             latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
+
+        Examples:
+            &gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
+        &#39;&#39;&#39;
+
+        assert nterms &gt; 0, &#39;modified_equation() member nterms={} has to be greater than zero.&#39;.format(nterms)
+
+        q = self.__solve_amp_factor()
+        couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
+                   (sum(i) &lt;= nterms and sum(i) &gt; 0)]
+
+        coefs = {}
+        derivs = {}
+        for couple in couples:
+            wrt_vars = []
+            wrt_wave_num = []
+            waveNum = {}
+            fac = 1
+            N = 0
+            ies = &#39;&#39;
+
+            for num, var in enumerate(self.__independentVars):
+                wrt_wave_num.append(self.vars[var][&#39;waveNum&#39;])
+                waveNum[self.vars[var][&#39;waveNum&#39;]] = 0
+                wrt_wave_num.append(couple[num])
+                wrt_vars.append(self.vars[var][&#39;sym&#39;])
+                wrt_vars.append(couple[num])
+                N = sum(couple)
+                fac *= factorial(couple[num])
+                ies += str(couple[num])
+
+            diff_ = diff(q, *wrt_wave_num).subs(waveNum)
+            frac = ratsimp(1 / (fac * I ** N))
+            coefficient = simplify(frac * diff_)
+            if coefficient != 0:
+                coefs[&#39;a{}&#39;.format(ies)] = nsimplify(coefficient)
+                derivs[&#39;a{}&#39;.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
+
+        me_lhs = Derivative(self.dependentVar, self.t[&#39;sym&#39;], 1)
+        me_rhs = 0
+        self.latex_ME[&#39;lhs&#39;] += latex(me_lhs)
+        for key in coefs.keys():
+            me_rhs += coefs[key] * derivs[key]
+            self.latex_ME[&#39;rhs&#39;][key[1:]] = latex(coefs[key] * derivs[key])
+        self.ME = Eq(me_lhs, me_rhs)
+
+        return self.__latex()
+
+    def __solve_amp_factor(self):
+        &#39;&#39;&#39;
+        Solve for the amplification factor of the numerical discritazation of the partial differential equation
+
+        Returns:
+             (expression): symbolic expression of the rhs of the amplification factor
+        &#39;&#39;&#39;
+        A = symbols(&#39;A&#39;)
+        # compute the amplification factor
+        lhs1 = simplify(self.lhs / self.dependent_var_func(self.t[&#39;index&#39;], **self.indicies))
+        rhs1 = simplify(self.rhs / self.dependent_var_func(self.t[&#39;index&#39;], **self.indicies))
+        eq = lhs1 - rhs1
+        eq = eq.subs(exp(self.t[&#39;ampFactor&#39;] * self.t[&#39;variation&#39;]), A)
+        eq = eq.subs(exp(self.t[&#39;variation&#39;] * self.t[&#39;ampFactor&#39;]), A)
+        eq = expand(eq)
+        eq = collect(eq, A)
+        logEqdt = simplify(solve(eq, A)[0])
+        q = log(logEqdt) / self.t[&#39;variation&#39;]  # amplification factor
+        return q
+
+    def amp_factor(self):
+        &#39;&#39;&#39;
+        Creats the latex representation of the amplification factor
+
+        Returns:
+            latex (string): Latex representation of the amplification factor as &#39; lhs = rhs &#39;
+        &#39;&#39;&#39;
+        lhs = symbols(&#39;alpha&#39;)
+        rhs = self.__solve_amp_factor()
+        eq = Eq(lhs,rhs)
+        return latex(eq)
+
+    def __latex(self):
+        &#39;&#39;&#39;
+        Returns:
+            latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
+
+        &#39;&#39;&#39;
+        strings = {}
+        for key in self.latex_ME[&#39;rhs&#39;].keys():
+            num = sum([int(x) for x in [char for char in key]])
+            string = self.latex_ME[&#39;rhs&#39;][key]
+            firstDelPos = string.rfind(&#34;{&#34;)
+            secondDelPos = string.rfind(&#34;}&#34;)
+            string = string.replace(string[firstDelPos:secondDelPos + 1], &#34;&#34;)
+
+            var_string = &#34; &#34; + string[-1] + &#34; &#34;
+            string = string[:-1]
+            rPartialPos = string.rfind(&#34;partial&#34;)
+            varNewPos = string[:rPartialPos].rfind(&#34;}&#34;)
+            string = string[:varNewPos] + var_string + string[varNewPos:]
+            if num in list(strings.keys()):
+                strings[num] += &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
+            else:
+                strings[num] = &#39; &#39; + string if string[0] == &#39;-&#39; else &#39; + &#39; + string
+        lhs_string = self.latex_ME[&#39;lhs&#39;]
+        firstDelPos = lhs_string.rfind(&#34;{&#34;)
+        secondDelPos = lhs_string.rfind(&#34;}&#34;)
+        lhs_string = lhs_string.replace(lhs_string[firstDelPos:secondDelPos + 1], &#34;&#34;)
+        var_string = &#34; &#34; + lhs_string[-1] + &#34; &#34;
+        lhs_string = lhs_string[:-1]
+        rPartialPos = lhs_string.rfind(&#34;partial&#34;)
+        varNewPos = lhs_string[:rPartialPos].rfind(&#34;}&#34;)
+        lhs_string = lhs_string[:varNewPos] + var_string + lhs_string[varNewPos:]
+
+        latex_str = lhs_string + &#39; = &#39;
+        for i in sorted(strings.keys()):
+            latex_str += strings[i]
+        return latex_str
+
+    def set_lhs(self):
+        &#39;&#39;&#39;
+        This function is not defined yet.
+        &#39;&#39;&#39;
+        raise Exception(&#39;For now we only support by default first order time derivative.&#39;)
+
+    def set_rhs(self, expression):
+        &#39;&#39;&#39;
+        sets the rhs of the DifferentialEquation
+        Parameters:
+            expression (symbolic expression): linear combination of expression generated from &lt;DE\&gt;.expr(...) or &lt;DE\&gt;.&lt;dependentVar\&gt;(...)
+
+        Examples:
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
+            &gt;&gt;&gt; a = symbols(&#39;a&#39;)
+            #using DE.expr(...)
+            &gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction=&#34;x&#34;,time=n,stencil=[-1, 0])
+            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+            #or using  DE.&lt;dependentVar&gt;(...)
+            &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
+            &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
+
+        &#39;&#39;&#39;
+
+        assert not isinstance(expression, str), &#39;set_rhs() parameter expression={} not a symbolic expression&#39;.format(
+            expression)
+
+        self.rhs = expression
+
+    def rhs(self):
+        &#39;&#39;&#39;
+        Returns:
+             (expression):  the rhs of the differential equation
+        &#39;&#39;&#39;
+        return self.rhs
+
+    def lhs(self):
+        &#39;&#39;&#39;
+        Returns:
+            (expression):  the lhs of the differential equation
+        &#39;&#39;&#39;
+        return self.lhs</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="pymodpde.DifferentialEquation.amp_factor"><code class="name flex">
+<span>def <span class="ident">amp_factor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Creats the latex representation of the amplification factor</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>latex</code></strong> :&ensp;<code>string</code></dt>
+<dd>Latex representation of the amplification factor as ' lhs = rhs '</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def amp_factor(self):
+    &#39;&#39;&#39;
+    Creats the latex representation of the amplification factor
+
+    Returns:
+        latex (string): Latex representation of the amplification factor as &#39; lhs = rhs &#39;
+    &#39;&#39;&#39;
+    lhs = symbols(&#39;alpha&#39;)
+    rhs = self.__solve_amp_factor()
+    eq = Eq(lhs,rhs)
+    return latex(eq)</code></pre>
 </details>
 </dd>
-<dt id="MOIRA.DifferentialEquation.rhs"><code class="name flex">
+<dt id="pymodpde.DifferentialEquation.dependent_var_func"><code class="name flex">
+<span>def <span class="ident">dependent_var_func</span></span>(<span>self, time, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) &hellip;</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>time</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
+<dd>time step at which we are applying this function ex: n, n+1, n-1, &hellip;, &lt;timeIndex> + number.</dd>
+<dt><strong><code>kwargs</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
+<dd>the stencil points at which we are applying this function ex: x=i+3, y=j+1, &hellip;, &lt;independentVar> = &lt;spatialIndex> + number</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>symbolic</code> <code>expression</code> of <code>this</code> <code>function</code> <code>applied</code> <code>at</code> <code>time</code> <code>index</code> <code>and</code> <code>points</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dependent_var_func(self, time, **kwargs):
+    &#39;&#39;&#39;
+    The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
+
+    Parameters:
+        time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1, ..., &lt;timeIndex\&gt; + number.
+        kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1, ..., &lt;independentVar\&gt; = &lt;spatialIndex\&gt; + number
+
+    Returns:
+        symbolic expression of this function applied at time index and points
+
+    Examples:
+        &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+    &#39;&#39;&#39;
+
+    assert isinstance(time, add.Add) or isinstance(time,
+                                                   symbol.Symbol), &#39;dependent_var_func() parameter time={} not of &lt;class &#34;sympy.core.add.Add&#34;&gt;, or &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
+        time)
+    time_symbols = list(time.free_symbols)
+    for sym in time_symbols:
+        assert sym == self.t[
+            &#39;index&#39;], &#39;dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.&#39;.format(
+            time, self.t[&#39;index&#39;])
+
+    keys = list(kwargs.keys())
+
+    for var in keys:
+        var_symbols = list(kwargs[var].free_symbols)
+        assert len(
+            var_symbols) == 1, &#39;dependent_var_func() parameter {}={} inappropriate number of indecies is used for {}&#39;.format(
+            var, kwargs[var], var)
+        assert var_symbols[0] == self.vars[var][
+            &#39;index&#39;], &#39;dependent_var_func() parameter {}={} other index is used for {}. Use {} index instead.&#39;.format(
+            var, kwargs[var], var, self.vars[var][&#39;index&#39;])
+
+    expression = exp(self.t[&#39;ampFactor&#39;] * (self.t[&#39;sym&#39;] + (time - self.t[&#39;index&#39;]) * self.t[&#39;variation&#39;]))
+    for var in keys:
+        expression *= exp(1j * self.vars[var][&#39;waveNum&#39;] * (
+                self.vars[var][&#39;sym&#39;] + (kwargs[var] - self.vars[var][&#39;index&#39;]) * self.vars[var][&#39;variation&#39;]))
+    return expression</code></pre>
+</details>
+</dd>
+<dt id="pymodpde.DifferentialEquation.expr"><code class="name flex">
+<span>def <span class="ident">expr</span></span>(<span>self, order, direction, time, stencil)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generates an expression based on the stencil, the direction,
+order of the derivative, and the time at which the expression is evaluated.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>order</code></strong> :&ensp;<code>int</code></dt>
+<dd>order of the derivative</dd>
+<dt><strong><code>direction</code></strong> :&ensp;<code>string</code></dt>
+<dd>the name of the independent variable that indicate the direction of the derivative</dd>
+<dt><strong><code>time</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
+<dd>time at which to evaluate the expression. ex: n+1 or n</dd>
+<dt><strong><code>stencil</code></strong> :&ensp;<code>list</code> of <code>int</code></dt>
+<dd>N points used for the stencil gen function</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>symbolic</code> <code>expression</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; &lt;DE&gt;.expr(order=1, direction='x', time=n, stencil=[-1,0])
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def expr(self, order, direction, time, stencil):
+    &#39;&#39;&#39;
+    Generates an expression based on the stencil, the direction,  order of the derivative, and the time at which the expression is evaluated.
+
+    Parameters:
+        order (int): order of the derivative
+        direction (string): the name of the independent variable that indicate the direction of the derivative
+        time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
+        stencil (list of int): N points used for the stencil gen function
+
+    Returns:
+        symbolic expression
+
+    Examples:
+         &gt;&gt;&gt; &lt;DE&gt;.expr(order=1, direction=&#39;x&#39;, time=n, stencil=[-1,0])
+    &#39;&#39;&#39;
+
+    assert isinstance(direction, str), &#39;exp() parameter direcction={} not of &lt;class &#34;str&#34;&gt;&#39;.format(direction)
+    assert direction in self.__independentVars, &#39;direcction={} not an independent variable. indepVar={}&#39;.format(
+        direction, self.__independentVars)
+    assert isinstance(time, add.Add) \
+           or isinstance(time,symbol.Symbol), \
+           &#39;expr() parameter time={} not of &lt;class &#34;sympy.core.add.Add&#34;&gt;,&#39; \
+           &#39; or &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(time)
+
+    time_symbols = list(time.free_symbols)
+    for sym in time_symbols:
+        assert sym == self.t[
+            &#39;index&#39;], &#39;dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.&#39;.format(
+            time, self.t[&#39;index&#39;])
+
+    stencil = self.stencil_gen(stencil, order)
+    expression = 0
+    for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
+
+        kwargs = {}
+        for var in self.__independentVars:
+            if var == direction:
+                kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
+            else:
+                kwargs[var] = self.vars[var][&#39;index&#39;]
+        expression += coef * self.dependent_var_func(time=time, **kwargs) / (
+                self.vars[direction][&#39;variation&#39;] ** order)
+    return ratsimp(expression)</code></pre>
+</details>
+</dd>
+<dt id="pymodpde.DifferentialEquation.get_independent_vars"><code class="name flex">
+<span>def <span class="ident">get_independent_vars</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="returns">Returns</h2>
+<dl>
+<dt><code>self.__independentVars</code> (<code>list</code>): <code>list</code> of <code>independent</code> <code>variables</code> <code>names</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_independent_vars(self):
+    &#39;&#39;&#39;
+    Returns:
+        self.__independentVars (list): list of independent variables names
+    &#39;&#39;&#39;
+    return self.__independentVars</code></pre>
+</details>
+</dd>
+<dt id="pymodpde.DifferentialEquation.lhs"><code class="name flex">
+<span>def <span class="ident">lhs</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="returns">Returns</h2>
+<p>(expression):
+the lhs of the differential equation</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lhs(self):
+    &#39;&#39;&#39;
+    Returns:
+        (expression):  the lhs of the differential equation
+    &#39;&#39;&#39;
+    return self.lhs</code></pre>
+</details>
+</dd>
+<dt id="pymodpde.DifferentialEquation.modified_equation"><code class="name flex">
+<span>def <span class="ident">modified_equation</span></span>(<span>self, nterms)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
+the order of derivatives in the &lt;indep var1> , &lt;indep var2>, and &lt;indep var3> directions, respectively. These are written as
+a_ijk * u_{ijk}.</p>
+<h2 id="parameters">Parameters</h2>
+<p>nterms (int):Number of terms to compute in the modified equation</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>latex</code></strong> :&ensp;<code>string</code></dt>
+<dd>Latex representation of the modified equation as ' lhs = rhs '</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def modified_equation(self, nterms):
+    &#39;&#39;&#39;
+    Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
+    the order of derivatives in the &lt;indep var1\&gt; , &lt;indep var2\&gt;, and &lt;indep var3\&gt; directions, respectively. These are written as
+    a_ijk * u_{ijk}.
+
+    Parameters:
+        nterms (int):Number of terms to compute in the modified equation
+
+    Returns:
+         latex (string): Latex representation of the modified equation as &#39; lhs = rhs &#39;
+
+    Examples:
+        &gt;&gt;&gt; &lt;DE&gt;.modified_equation(nterms=2)
+    &#39;&#39;&#39;
+
+    assert nterms &gt; 0, &#39;modified_equation() member nterms={} has to be greater than zero.&#39;.format(nterms)
+
+    q = self.__solve_amp_factor()
+    couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
+               (sum(i) &lt;= nterms and sum(i) &gt; 0)]
+
+    coefs = {}
+    derivs = {}
+    for couple in couples:
+        wrt_vars = []
+        wrt_wave_num = []
+        waveNum = {}
+        fac = 1
+        N = 0
+        ies = &#39;&#39;
+
+        for num, var in enumerate(self.__independentVars):
+            wrt_wave_num.append(self.vars[var][&#39;waveNum&#39;])
+            waveNum[self.vars[var][&#39;waveNum&#39;]] = 0
+            wrt_wave_num.append(couple[num])
+            wrt_vars.append(self.vars[var][&#39;sym&#39;])
+            wrt_vars.append(couple[num])
+            N = sum(couple)
+            fac *= factorial(couple[num])
+            ies += str(couple[num])
+
+        diff_ = diff(q, *wrt_wave_num).subs(waveNum)
+        frac = ratsimp(1 / (fac * I ** N))
+        coefficient = simplify(frac * diff_)
+        if coefficient != 0:
+            coefs[&#39;a{}&#39;.format(ies)] = nsimplify(coefficient)
+            derivs[&#39;a{}&#39;.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
+
+    me_lhs = Derivative(self.dependentVar, self.t[&#39;sym&#39;], 1)
+    me_rhs = 0
+    self.latex_ME[&#39;lhs&#39;] += latex(me_lhs)
+    for key in coefs.keys():
+        me_rhs += coefs[key] * derivs[key]
+        self.latex_ME[&#39;rhs&#39;][key[1:]] = latex(coefs[key] * derivs[key])
+    self.ME = Eq(me_lhs, me_rhs)
+
+    return self.__latex()</code></pre>
+</details>
+</dd>
+<dt id="pymodpde.DifferentialEquation.rhs"><code class="name flex">
 <span>def <span class="ident">rhs</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -936,7 +1149,7 @@ the rhs of the differential equation</p></section>
     return self.rhs</code></pre>
 </details>
 </dd>
-<dt id="MOIRA.DifferentialEquation.set_lhs"><code class="name flex">
+<dt id="pymodpde.DifferentialEquation.set_lhs"><code class="name flex">
 <span>def <span class="ident">set_lhs</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -952,7 +1165,7 @@ the rhs of the differential equation</p></section>
     raise Exception(&#39;For now we only support by default first order time derivative.&#39;)</code></pre>
 </details>
 </dd>
-<dt id="MOIRA.DifferentialEquation.set_rhs"><code class="name flex">
+<dt id="pymodpde.DifferentialEquation.set_rhs"><code class="name flex">
 <span>def <span class="ident">set_rhs</span></span>(<span>self, expression)</span>
 </code></dt>
 <dd>
@@ -966,7 +1179,7 @@ the rhs of the differential equation</p></section>
 <pre><code>&gt;&gt;&gt; DE = DifferentialEquation(dependentVar="u",independentVars =["x"])
 &gt;&gt;&gt; a = symbols('a')
 #using DE.expr(...)
-&gt;&gt;&gt; advectionTerm = DE.expr(points=[-1, 0],  direction="x", order=1, time=n)
+&gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction="x",time=n,stencil=[-1, 0])
 &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
 #or using  DE.&lt;dependentVar&gt;(...)
 &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
@@ -986,17 +1199,21 @@ the rhs of the differential equation</p></section>
         &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
         &gt;&gt;&gt; a = symbols(&#39;a&#39;)
         #using DE.expr(...)
-        &gt;&gt;&gt; advectionTerm = DE.expr(points=[-1, 0],  direction=&#34;x&#34;, order=1, time=n)
+        &gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction=&#34;x&#34;,time=n,stencil=[-1, 0])
         &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
         #or using  DE.&lt;dependentVar&gt;(...)
         &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
         &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
 
     &#39;&#39;&#39;
+
+    assert not isinstance(expression, str), &#39;set_rhs() parameter expression={} not a symbolic expression&#39;.format(
+        expression)
+
     self.rhs = expression</code></pre>
 </details>
 </dd>
-<dt id="MOIRA.DifferentialEquation.stencil_gen"><code class="name flex">
+<dt id="pymodpde.DifferentialEquation.stencil_gen"><code class="name flex">
 <span>def <span class="ident">stencil_gen</span></span>(<span>self, points, order)</span>
 </code></dt>
 <dd>
@@ -1020,7 +1237,7 @@ the rhs of the differential equation</p></section>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def stencil_gen(self, points, order):
+<pre><code class="python">def stencil_gen(self, points: list, order: int):
     &#39;&#39;&#39;
     Generates finite difference equation based on the location of sampled points and derivative order
 
@@ -1035,6 +1252,12 @@ the rhs of the differential equation</p></section>
     Examples:
         &gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
     &#39;&#39;&#39;
+
+    assert isinstance(points, list), &#39;stencil_gen() parameter points={} not of &lt;class &#34;list&#34;&gt;&#39;.format(points)
+    for pt in points:
+        assert isinstance(pt, int), &#39;elements of points={} are not of &lt;class &#34;int&#34;&gt;&#39;.format(points)
+    assert order &lt; len(points), &#39;Enter a derivative order that is less than the number of points in your stencil.&#39;
+
     numPts = len(points)
     M = []
     for i in range(numPts):
@@ -1059,18 +1282,18 @@ the rhs of the differential equation</p></section>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="MOIRA.DifferentialEquation" href="#MOIRA.DifferentialEquation">DifferentialEquation</a></code></h4>
+<h4><code><a title="pymodpde.DifferentialEquation" href="#pymodpde.DifferentialEquation">DifferentialEquation</a></code></h4>
 <ul class="">
-<li><code><a title="MOIRA.DifferentialEquation.expr" href="#MOIRA.DifferentialEquation.expr">expr</a></code></li>
-<li><code><a title="MOIRA.DifferentialEquation.function" href="#MOIRA.DifferentialEquation.function">function</a></code></li>
-<li><code><a title="MOIRA.DifferentialEquation.get_independent_vars" href="#MOIRA.DifferentialEquation.get_independent_vars">get_independent_vars</a></code></li>
-<li><code><a title="MOIRA.DifferentialEquation.latex" href="#MOIRA.DifferentialEquation.latex">latex</a></code></li>
-<li><code><a title="MOIRA.DifferentialEquation.lhs" href="#MOIRA.DifferentialEquation.lhs">lhs</a></code></li>
-<li><code><a title="MOIRA.DifferentialEquation.modified_equation" href="#MOIRA.DifferentialEquation.modified_equation">modified_equation</a></code></li>
-<li><code><a title="MOIRA.DifferentialEquation.rhs" href="#MOIRA.DifferentialEquation.rhs">rhs</a></code></li>
-<li><code><a title="MOIRA.DifferentialEquation.set_lhs" href="#MOIRA.DifferentialEquation.set_lhs">set_lhs</a></code></li>
-<li><code><a title="MOIRA.DifferentialEquation.set_rhs" href="#MOIRA.DifferentialEquation.set_rhs">set_rhs</a></code></li>
-<li><code><a title="MOIRA.DifferentialEquation.stencil_gen" href="#MOIRA.DifferentialEquation.stencil_gen">stencil_gen</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.amp_factor" href="#pymodpde.DifferentialEquation.amp_factor">amp_factor</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.dependent_var_func" href="#pymodpde.DifferentialEquation.dependent_var_func">dependent_var_func</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.expr" href="#pymodpde.DifferentialEquation.expr">expr</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.get_independent_vars" href="#pymodpde.DifferentialEquation.get_independent_vars">get_independent_vars</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.lhs" href="#pymodpde.DifferentialEquation.lhs">lhs</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.modified_equation" href="#pymodpde.DifferentialEquation.modified_equation">modified_equation</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.rhs" href="#pymodpde.DifferentialEquation.rhs">rhs</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.set_lhs" href="#pymodpde.DifferentialEquation.set_lhs">set_lhs</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.set_rhs" href="#pymodpde.DifferentialEquation.set_rhs">set_rhs</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.stencil_gen" href="#pymodpde.DifferentialEquation.stencil_gen">stencil_gen</a></code></li>
 </ul>
 </li>
 </ul>

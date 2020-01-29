@@ -2,7 +2,7 @@
 dir=doc
 if [ -d $dir ]
 then
-    pdoc --html src/MOIRA.py --output-dir doc -f
+    pdoc --html src/pymodpde.py --output-dir doc -f
 else
-    pdoc --html src/MOIRA.py --output-dir doc
+    pdoc --html src/pymodpde.py --output-dir doc
 fi
