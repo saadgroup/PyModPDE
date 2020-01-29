@@ -1,4 +1,4 @@
-"""MOIRA.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
+"""pymodpde.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
 based on the used finite difference scheme."""
 
 __author__ = "Mokbel Karam , James C. Sutherland, and Tony Saad"
