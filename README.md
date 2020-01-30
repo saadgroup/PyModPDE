@@ -1,6 +1,6 @@
 # PyModPDE
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/saadgroup/PyModPDE/master?filepath=examples) (press launch binder to run the examples.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/saadgroup/PyModPDE/master?filepath=examples.ipynb)(press launch binder to run the examples.ipynb)
 
 PyModPDE is a Python software that generates the modified equation for a first order time dependent partial differential equation (PDE) of the form
 <br/>
