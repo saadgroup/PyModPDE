@@ -345,11 +345,10 @@ class DifferentialEquation:
             firstDelPos = string.rfind("{")
             secondDelPos = string.rfind("}")
             string = string.replace(string[firstDelPos:secondDelPos + 1], "")
-
             var_string = " " + string[-1] + " "
             string = string[:-1]
             rPartialPos = string.rfind("partial")
-            varNewPos = string[:rPartialPos].rfind("}")
+            varNewPos = string[:rPartialPos].rfind("}{")
             string = string[:varNewPos] + var_string + string[varNewPos:]
             if num in list(strings.keys()):
                 strings[num] += ' ' + string if string[0] == '-' else ' + ' + string
