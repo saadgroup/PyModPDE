@@ -57,7 +57,7 @@ class DifferentialEquation:
             timeIndex (symbol): symbolic variable of the time index
 
         Examples:
-            &gt;&gt;&gt; DE = DifferentialEquation(independentVars=[&#39;x&#39;, &#39;y&#39;], dependentVar=&#39;u&#39;, indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;u&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
         &#39;&#39;&#39;
 
         assert isinstance(dependentVar,
@@ -150,7 +150,23 @@ class DifferentialEquation:
             symbolic expression of this function applied at time index and points
 
         Examples:
+
             &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+
+            the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme
+
+            &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;u&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
+            &gt;&gt;&gt; DE.set_rhs(advection)
+            &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
+
+            another example where we change the name of the dependent variable from &#39;u&#39; to &#39;f&#39;
+            &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;f&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
+            &gt;&gt;&gt; DE.set_rhs(advection)
+            &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
         &#39;&#39;&#39;
 
         assert isinstance(time, add.Add) or isinstance(time,
@@ -179,7 +195,7 @@ class DifferentialEquation:
                     self.vars[var][&#39;sym&#39;] + (kwargs[var] - self.vars[var][&#39;index&#39;]) * self.vars[var][&#39;variation&#39;]))
         return expression
 
-    def stencil_gen(self, points: list, order: int):
+    def __stencil_gen(self, points: list, order: int):
         &#39;&#39;&#39;
         Generates finite difference equation based on the location of sampled points and derivative order
 
@@ -192,10 +208,10 @@ class DifferentialEquation:
                 {&#39;points&#39;:[],&#39;coefs&#39;:[]}
 
         Examples:
-            &gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
+            &gt;&gt;&gt; &lt;DE&gt;.__stencil_gen(points=[-1,0],order=1)
         &#39;&#39;&#39;
 
-        assert isinstance(points, list), &#39;stencil_gen() parameter points={} not of &lt;class &#34;list&#34;&gt;&#39;.format(points)
+        assert isinstance(points, list), &#39;__stencil_gen() parameter points={} not of &lt;class &#34;list&#34;&gt;&#39;.format(points)
         for pt in points:
             assert isinstance(pt, int), &#39;elements of points={} are not of &lt;class &#34;int&#34;&gt;&#39;.format(points)
         assert order &lt; len(points), &#39;Enter a derivative order that is less than the number of points in your stencil.&#39;
@@ -240,7 +256,7 @@ class DifferentialEquation:
                 &#39;index&#39;], &#39;dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.&#39;.format(
                 time, self.t[&#39;index&#39;])
 
-        stencil = self.stencil_gen(stencil, order)
+        stencil = self.__stencil_gen(stencil, order)
         expression = 0
         for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
 
@@ -383,7 +399,7 @@ class DifferentialEquation:
             latex_str += strings[i]
         return latex_str
 
-    def set_lhs(self):
+    def __set_lhs(self):
         &#39;&#39;&#39;
         This function is not defined yet.
         &#39;&#39;&#39;
@@ -398,10 +414,14 @@ class DifferentialEquation:
         Examples:
             &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
             &gt;&gt;&gt; a = symbols(&#39;a&#39;)
-            #using DE.expr(...)
+
+            using DE.expr(...)
+
             &gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction=&#34;x&#34;,time=n,stencil=[-1, 0])
             &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
-            #or using  DE.&lt;dependentVar&gt;(...)
+
+            or using  DE.&lt;dependentVar\&gt;(...)
+
             &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
             &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
 
@@ -412,14 +432,14 @@ class DifferentialEquation:
 
         self.rhs = expression
 
-    def rhs(self):
+    def __rhs(self):
         &#39;&#39;&#39;
         Returns:
              (expression):  the rhs of the differential equation
         &#39;&#39;&#39;
         return self.rhs
 
-    def lhs(self):
+    def __lhs(self):
         &#39;&#39;&#39;
         Returns:
             (expression):  the lhs of the differential equation
@@ -453,7 +473,7 @@ class DifferentialEquation:
 <dd>symbolic variable of the time index</dd>
 </dl>
 <h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; DE = DifferentialEquation(independentVars=['x', 'y'], dependentVar='u', indices=[i, j], timeIndex=n)
+<pre><code>&gt;&gt;&gt; DE = DifferentialEquation(dependentVar='u', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
 </code></pre></section>
 <details class="source">
 <summary>
@@ -470,7 +490,7 @@ class DifferentialEquation:
             timeIndex (symbol): symbolic variable of the time index
 
         Examples:
-            &gt;&gt;&gt; DE = DifferentialEquation(independentVars=[&#39;x&#39;, &#39;y&#39;], dependentVar=&#39;u&#39;, indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;u&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
         &#39;&#39;&#39;
 
         assert isinstance(dependentVar,
@@ -563,7 +583,23 @@ class DifferentialEquation:
             symbolic expression of this function applied at time index and points
 
         Examples:
+
             &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+
+            the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme
+
+            &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;u&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
+            &gt;&gt;&gt; DE.set_rhs(advection)
+            &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
+
+            another example where we change the name of the dependent variable from &#39;u&#39; to &#39;f&#39;
+            &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;f&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
+            &gt;&gt;&gt; DE.set_rhs(advection)
+            &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
         &#39;&#39;&#39;
 
         assert isinstance(time, add.Add) or isinstance(time,
@@ -592,7 +628,7 @@ class DifferentialEquation:
                     self.vars[var][&#39;sym&#39;] + (kwargs[var] - self.vars[var][&#39;index&#39;]) * self.vars[var][&#39;variation&#39;]))
         return expression
 
-    def stencil_gen(self, points: list, order: int):
+    def __stencil_gen(self, points: list, order: int):
         &#39;&#39;&#39;
         Generates finite difference equation based on the location of sampled points and derivative order
 
@@ -605,10 +641,10 @@ class DifferentialEquation:
                 {&#39;points&#39;:[],&#39;coefs&#39;:[]}
 
         Examples:
-            &gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
+            &gt;&gt;&gt; &lt;DE&gt;.__stencil_gen(points=[-1,0],order=1)
         &#39;&#39;&#39;
 
-        assert isinstance(points, list), &#39;stencil_gen() parameter points={} not of &lt;class &#34;list&#34;&gt;&#39;.format(points)
+        assert isinstance(points, list), &#39;__stencil_gen() parameter points={} not of &lt;class &#34;list&#34;&gt;&#39;.format(points)
         for pt in points:
             assert isinstance(pt, int), &#39;elements of points={} are not of &lt;class &#34;int&#34;&gt;&#39;.format(points)
         assert order &lt; len(points), &#39;Enter a derivative order that is less than the number of points in your stencil.&#39;
@@ -653,7 +689,7 @@ class DifferentialEquation:
                 &#39;index&#39;], &#39;dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.&#39;.format(
                 time, self.t[&#39;index&#39;])
 
-        stencil = self.stencil_gen(stencil, order)
+        stencil = self.__stencil_gen(stencil, order)
         expression = 0
         for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
 
@@ -796,7 +832,7 @@ class DifferentialEquation:
             latex_str += strings[i]
         return latex_str
 
-    def set_lhs(self):
+    def __set_lhs(self):
         &#39;&#39;&#39;
         This function is not defined yet.
         &#39;&#39;&#39;
@@ -811,10 +847,14 @@ class DifferentialEquation:
         Examples:
             &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
             &gt;&gt;&gt; a = symbols(&#39;a&#39;)
-            #using DE.expr(...)
+
+            using DE.expr(...)
+
             &gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction=&#34;x&#34;,time=n,stencil=[-1, 0])
             &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
-            #or using  DE.&lt;dependentVar&gt;(...)
+
+            or using  DE.&lt;dependentVar\&gt;(...)
+
             &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
             &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
 
@@ -825,14 +865,14 @@ class DifferentialEquation:
 
         self.rhs = expression
 
-    def rhs(self):
+    def __rhs(self):
         &#39;&#39;&#39;
         Returns:
              (expression):  the rhs of the differential equation
         &#39;&#39;&#39;
         return self.rhs
 
-    def lhs(self):
+    def __lhs(self):
         &#39;&#39;&#39;
         Returns:
             (expression):  the lhs of the differential equation
@@ -887,6 +927,20 @@ class DifferentialEquation:
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code>&gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+</code></pre>
+<p>the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme</p>
+<pre><code>&gt;&gt;&gt; i, j, n, a = symbols("i j n a")
+&gt;&gt;&gt; DE = DifferentialEquation(dependentVar='u', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
+&gt;&gt;&gt; advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
+&gt;&gt;&gt; DE.set_rhs(advection)
+&gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
+</code></pre>
+<p>another example where we change the name of the dependent variable from 'u' to 'f'</p>
+<pre><code>&gt;&gt;&gt; i, j, n, a = symbols("i j n a")
+&gt;&gt;&gt; DE = DifferentialEquation(dependentVar='f', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
+&gt;&gt;&gt; advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
+&gt;&gt;&gt; DE.set_rhs(advection)
+&gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
 </code></pre></section>
 <details class="source">
 <summary>
@@ -904,7 +958,23 @@ class DifferentialEquation:
         symbolic expression of this function applied at time index and points
 
     Examples:
+
         &gt;&gt;&gt; &lt;DE&gt;.&lt;dependentVar&gt;(time=n+1, x=i+1, y=j)
+
+        the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme
+
+        &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
+        &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;u&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+        &gt;&gt;&gt; advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
+        &gt;&gt;&gt; DE.set_rhs(advection)
+        &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
+
+        another example where we change the name of the dependent variable from &#39;u&#39; to &#39;f&#39;
+        &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
+        &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;f&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+        &gt;&gt;&gt; advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
+        &gt;&gt;&gt; DE.set_rhs(advection)
+        &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
     &#39;&#39;&#39;
 
     assert isinstance(time, add.Add) or isinstance(time,
@@ -994,7 +1064,7 @@ order of the derivative, and the time at which the expression is evaluated.</p>
             &#39;index&#39;], &#39;dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.&#39;.format(
             time, self.t[&#39;index&#39;])
 
-    stencil = self.stencil_gen(stencil, order)
+    stencil = self.__stencil_gen(stencil, order)
     expression = 0
     for coef, pt in zip(stencil[&#39;coefs&#39;], stencil[&#39;points&#39;]):
 
@@ -1028,25 +1098,6 @@ order of the derivative, and the time at which the expression is evaluated.</p>
         self.__independentVars (list): list of independent variables names
     &#39;&#39;&#39;
     return self.__independentVars</code></pre>
-</details>
-</dd>
-<dt id="pymodpde.DifferentialEquation.lhs"><code class="name flex">
-<span>def <span class="ident">lhs</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><h2 id="returns">Returns</h2>
-<p>(expression):
-the lhs of the differential equation</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def lhs(self):
-    &#39;&#39;&#39;
-    Returns:
-        (expression):  the lhs of the differential equation
-    &#39;&#39;&#39;
-    return self.lhs</code></pre>
 </details>
 </dd>
 <dt id="pymodpde.DifferentialEquation.modified_equation"><code class="name flex">
@@ -1130,41 +1181,6 @@ a_ijk * u_{ijk}.</p>
     return self.__latex()</code></pre>
 </details>
 </dd>
-<dt id="pymodpde.DifferentialEquation.rhs"><code class="name flex">
-<span>def <span class="ident">rhs</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><h2 id="returns">Returns</h2>
-<p>(expression):
-the rhs of the differential equation</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def rhs(self):
-    &#39;&#39;&#39;
-    Returns:
-         (expression):  the rhs of the differential equation
-    &#39;&#39;&#39;
-    return self.rhs</code></pre>
-</details>
-</dd>
-<dt id="pymodpde.DifferentialEquation.set_lhs"><code class="name flex">
-<span>def <span class="ident">set_lhs</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>This function is not defined yet.</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def set_lhs(self):
-    &#39;&#39;&#39;
-    This function is not defined yet.
-    &#39;&#39;&#39;
-    raise Exception(&#39;For now we only support by default first order time derivative.&#39;)</code></pre>
-</details>
-</dd>
 <dt id="pymodpde.DifferentialEquation.set_rhs"><code class="name flex">
 <span>def <span class="ident">set_rhs</span></span>(<span>self, expression)</span>
 </code></dt>
@@ -1178,11 +1194,14 @@ the rhs of the differential equation</p></section>
 <h2 id="examples">Examples</h2>
 <pre><code>&gt;&gt;&gt; DE = DifferentialEquation(dependentVar="u",independentVars =["x"])
 &gt;&gt;&gt; a = symbols('a')
-#using DE.expr(...)
-&gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction="x",time=n,stencil=[-1, 0])
+</code></pre>
+<p>using DE.expr(&hellip;)</p>
+<pre><code>&gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction="x",time=n,stencil=[-1, 0])
 &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
-#or using  DE.&lt;dependentVar&gt;(...)
-&gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
+</code></pre>
+<p>or using
+DE.&lt;dependentVar>(&hellip;)</p>
+<pre><code>&gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
 &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
 </code></pre></section>
 <details class="source">
@@ -1198,10 +1217,14 @@ the rhs of the differential equation</p></section>
     Examples:
         &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
         &gt;&gt;&gt; a = symbols(&#39;a&#39;)
-        #using DE.expr(...)
+
+        using DE.expr(...)
+
         &gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction=&#34;x&#34;,time=n,stencil=[-1, 0])
         &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
-        #or using  DE.&lt;dependentVar&gt;(...)
+
+        or using  DE.&lt;dependentVar\&gt;(...)
+
         &gt;&gt;&gt; advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
         &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
 
@@ -1211,61 +1234,6 @@ the rhs of the differential equation</p></section>
         expression)
 
     self.rhs = expression</code></pre>
-</details>
-</dd>
-<dt id="pymodpde.DifferentialEquation.stencil_gen"><code class="name flex">
-<span>def <span class="ident">stencil_gen</span></span>(<span>self, points, order)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Generates finite difference equation based on the location of sampled points and derivative order</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>points</code></strong> :&ensp;<code>list</code> <code>int</code></dt>
-<dd>stencil of length N needed ex: [-1,0,1] stencil around 0</dd>
-</dl>
-<p>order (int &gt; 0): the order of derivatives d, d&lt;N</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>the</code> <code>finite</code> <code>difference</code> <code>coefficients</code> <code>along</code> <code>with</code> <code>the</code> <code>points</code> <code>used</code> <code>in</code> <code>a</code> <code>dictionary</code></dt>
-<dd>&nbsp;</dd>
-</dl>
-<p>{'points':[],'coefs':[]}</p>
-<h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
-</code></pre></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def stencil_gen(self, points: list, order: int):
-    &#39;&#39;&#39;
-    Generates finite difference equation based on the location of sampled points and derivative order
-
-    Parameters:
-        points (list int): stencil of length N needed ex: [-1,0,1] stencil around 0
-        order (int &gt; 0): the order of derivatives d, d&lt;N
-
-    Returns:
-         the finite difference coefficients along with the points used in a dictionary
-            {&#39;points&#39;:[],&#39;coefs&#39;:[]}
-
-    Examples:
-        &gt;&gt;&gt; &lt;DE&gt;.stencil_gen(points=[-1,0],order=1)
-    &#39;&#39;&#39;
-
-    assert isinstance(points, list), &#39;stencil_gen() parameter points={} not of &lt;class &#34;list&#34;&gt;&#39;.format(points)
-    for pt in points:
-        assert isinstance(pt, int), &#39;elements of points={} are not of &lt;class &#34;int&#34;&gt;&#39;.format(points)
-    assert order &lt; len(points), &#39;Enter a derivative order that is less than the number of points in your stencil.&#39;
-
-    numPts = len(points)
-    M = []
-    for i in range(numPts):
-        M.append([s ** i for s in points])
-    M = Matrix(M)
-    b = Matrix([factorial(order) * 1 if j == order else 0 for j in range(numPts)])
-    coefs = list(M.inv() * b)
-    return {&#39;points&#39;: points, &#39;coefs&#39;: coefs}</code></pre>
 </details>
 </dd>
 </dl>
@@ -1288,12 +1256,8 @@ the rhs of the differential equation</p></section>
 <li><code><a title="pymodpde.DifferentialEquation.dependent_var_func" href="#pymodpde.DifferentialEquation.dependent_var_func">dependent_var_func</a></code></li>
 <li><code><a title="pymodpde.DifferentialEquation.expr" href="#pymodpde.DifferentialEquation.expr">expr</a></code></li>
 <li><code><a title="pymodpde.DifferentialEquation.get_independent_vars" href="#pymodpde.DifferentialEquation.get_independent_vars">get_independent_vars</a></code></li>
-<li><code><a title="pymodpde.DifferentialEquation.lhs" href="#pymodpde.DifferentialEquation.lhs">lhs</a></code></li>
 <li><code><a title="pymodpde.DifferentialEquation.modified_equation" href="#pymodpde.DifferentialEquation.modified_equation">modified_equation</a></code></li>
-<li><code><a title="pymodpde.DifferentialEquation.rhs" href="#pymodpde.DifferentialEquation.rhs">rhs</a></code></li>
-<li><code><a title="pymodpde.DifferentialEquation.set_lhs" href="#pymodpde.DifferentialEquation.set_lhs">set_lhs</a></code></li>
 <li><code><a title="pymodpde.DifferentialEquation.set_rhs" href="#pymodpde.DifferentialEquation.set_rhs">set_rhs</a></code></li>
-<li><code><a title="pymodpde.DifferentialEquation.stencil_gen" href="#pymodpde.DifferentialEquation.stencil_gen">stencil_gen</a></code></li>
 </ul>
 </li>
 </ul>

@@ -93,3 +93,9 @@ pretty_print(DE.amp_factor())
 # computing and displaying the modified equation up to two terms
 pretty_print(DE.modified_equation(nterms=2))
 ```
+
+---
+## See Also
+
+* [Documentation](https://htmlpreview.github.io/?https://github.com/saadgroup/PyModPDE/blob/master/doc/pymodpde.html)
+--- 

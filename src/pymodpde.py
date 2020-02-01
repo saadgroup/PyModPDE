@@ -28,7 +28,7 @@ class DifferentialEquation:
             timeIndex (symbol): symbolic variable of the time index
 
         Examples:
-            >>> DE = DifferentialEquation(independentVars=['x', 'y'], dependentVar='u', indices=[i, j], timeIndex=n)
+            >>> DE = DifferentialEquation(dependentVar='u', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
         '''
 
         assert isinstance(dependentVar,
@@ -121,7 +121,23 @@ class DifferentialEquation:
             symbolic expression of this function applied at time index and points
 
         Examples:
+
             >>> <DE>.<dependentVar>(time=n+1, x=i+1, y=j)
+
+            the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme
+
+            >>> i, j, n, a = symbols("i j n a")
+            >>> DE = DifferentialEquation(dependentVar='u', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
+            >>> advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
+            >>> DE.set_rhs(advection)
+            >>> pretty_print(DE.modified_equation(nterms=2))
+
+            another example where we change the name of the dependent variable from 'u' to 'f'
+            >>> i, j, n, a = symbols("i j n a")
+            >>> DE = DifferentialEquation(dependentVar='f', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
+            >>> advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
+            >>> DE.set_rhs(advection)
+            >>> pretty_print(DE.modified_equation(nterms=2))
         '''
 
         assert isinstance(time, add.Add) or isinstance(time,
@@ -150,7 +166,7 @@ class DifferentialEquation:
                     self.vars[var]['sym'] + (kwargs[var] - self.vars[var]['index']) * self.vars[var]['variation']))
         return expression
 
-    def stencil_gen(self, points: list, order: int):
+    def __stencil_gen(self, points: list, order: int):
         '''
         Generates finite difference equation based on the location of sampled points and derivative order
 
@@ -163,10 +179,10 @@ class DifferentialEquation:
                 {'points':[],'coefs':[]}
 
         Examples:
-            >>> <DE>.stencil_gen(points=[-1,0],order=1)
+            >>> <DE>.__stencil_gen(points=[-1,0],order=1)
         '''
 
-        assert isinstance(points, list), 'stencil_gen() parameter points={} not of <class "list">'.format(points)
+        assert isinstance(points, list), '__stencil_gen() parameter points={} not of <class "list">'.format(points)
         for pt in points:
             assert isinstance(pt, int), 'elements of points={} are not of <class "int">'.format(points)
         assert order < len(points), 'Enter a derivative order that is less than the number of points in your stencil.'
@@ -211,7 +227,7 @@ class DifferentialEquation:
                 'index'], 'dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.'.format(
                 time, self.t['index'])
 
-        stencil = self.stencil_gen(stencil, order)
+        stencil = self.__stencil_gen(stencil, order)
         expression = 0
         for coef, pt in zip(stencil['coefs'], stencil['points']):
 
@@ -354,7 +370,7 @@ class DifferentialEquation:
             latex_str += strings[i]
         return latex_str
 
-    def set_lhs(self):
+    def __set_lhs(self):
         '''
         This function is not defined yet.
         '''
@@ -369,10 +385,14 @@ class DifferentialEquation:
         Examples:
             >>> DE = DifferentialEquation(dependentVar="u",independentVars =["x"])
             >>> a = symbols('a')
-            #using DE.expr(...)
+
+            using DE.expr(...)
+
             >>> advectionTerm = DE.expr(order=1,direction="x",time=n,stencil=[-1, 0])
             >>> DE.set_rhs(expression= - a * advectionTerm)
-            #or using  DE.<dependentVar>(...)
+
+            or using  DE.<dependentVar\>(...)
+
             >>> advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
             >>> DE.set_rhs(expression= - a * advectionTerm)
 
@@ -383,14 +403,14 @@ class DifferentialEquation:
 
         self.rhs = expression
 
-    def rhs(self):
+    def __rhs(self):
         '''
         Returns:
              (expression):  the rhs of the differential equation
         '''
         return self.rhs
 
-    def lhs(self):
+    def __lhs(self):
         '''
         Returns:
             (expression):  the lhs of the differential equation
