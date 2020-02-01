@@ -295,7 +295,7 @@ class DifferentialEquation:
         self.latex_ME['lhs'] += latex(me_lhs)
         for key in coefs.keys():
             me_rhs += coefs[key] * derivs[key]
-            self.latex_ME['rhs'][key[1:]] = latex(coefs[key] * derivs[key])
+            self.latex_ME['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
         self.ME = Eq(me_lhs, me_rhs)
 
         return self.__latex()
