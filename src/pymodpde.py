@@ -292,7 +292,7 @@ class DifferentialEquation:
 
         me_lhs = Derivative(self.dependentVar, self.t['sym'], 1)
         me_rhs = 0
-        self.latex_ME['lhs'] += latex(me_lhs)
+        self.latex_ME['lhs'] = latex(me_lhs)
         for key in coefs.keys():
             me_rhs += coefs[key] * derivs[key]
             self.latex_ME['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
