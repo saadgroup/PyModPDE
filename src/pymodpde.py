@@ -92,18 +92,34 @@ class DifferentialEquation:
 
     @property
     def ME(self):
+        '''
+        Returns:
+             the symbolic modified equation
+        '''
         return self.__ME
 
     @property
     def Latex_ME(self):
+        '''
+        Returns:
+             the Latex string of the modified equation
+        '''
         return self.__latex()
 
     @property
     def Latex_Amp_Factor(self):
+        '''
+        Returns:
+             the Latex string of the amplification factor
+        '''
         return self.__latex_amp_factor
 
     @property
     def Amp_Factor(self):
+        '''
+        Returns:
+             the symbolic amplification factor
+        '''
         return self.__amp_factor
 
     def get_independent_vars(self):
@@ -273,6 +289,9 @@ class DifferentialEquation:
         return ratsimp(expression)
 
     def __printer(foo):
+        '''
+        decorator that prints the results based on where they are executed: jupyter or script
+        '''
         @functools.wraps(foo)
         def Print(self, *args, **kwargs):
             try:
@@ -303,7 +322,7 @@ class DifferentialEquation:
             nterms (int):Number of terms to compute in the modified equation
 
         Returns:
-             latex (string): Latex representation of the modified equation as ' lhs = rhs '
+             latex (display): Latex formatted representation of the modified equation as ' lhs = rhs ' in jupyter or console
 
         Examples:
             >>> <DE>.modified_equation(nterms=2)
@@ -377,7 +396,7 @@ class DifferentialEquation:
         Creats the latex representation of the amplification factor
 
         Returns:
-            latex (string): Latex representation of the amplification factor as ' lhs = rhs '
+            latex (display): Latex formatted representation of the amplification factor as ' lhs = rhs ' in jupyter or console
         '''
         lhs = symbols('alpha')
         rhs = self.__solve_amp_factor()
