@@ -86,13 +86,21 @@ class DifferentialEquation:
                        self.t['variation']
             self.rhs = None
 
+            self.__latex_amp_factor = None
+            self.__ME = None
+            self.__amp_factor = None
+
     @property
     def ME(self):
         return self.__ME
 
     @property
     def Latex_ME(self):
-        return self.__latex_ME
+        return self.__latex()
+
+    @property
+    def Latex_Amp_Factor(self):
+        return self.__latex_amp_factor
 
     @property
     def Amp_Factor(self):
@@ -121,7 +129,7 @@ class DifferentialEquation:
             setattr(self, waveNumName, symbols(waveNumName))
             self.vars[var]['waveNum'] = getattr(self, waveNumName)
             variationName = 'd{}'.format(var)
-            variationSymStr = '\Delta\ {}'.format(var)
+            variationSymStr = '\Delta{}'.format('{'+var+'}')
             setattr(self, variationName, symbols(variationSymStr))
             self.vars[var]['variation'] = getattr(self, variationName)
             self.vars[var]['index'] = index
@@ -269,9 +277,17 @@ class DifferentialEquation:
         def Print(self, *args, **kwargs):
             try:
                 if 'IPKernelApp' in get_ipython().config:  # pragma: no cover
-                    return display(Math(foo(self, *args, **kwargs)))
+                    if foo.__name__ == 'modified_equation':
+                        foo(self, *args, **kwargs)
+                        return display(Math(self.__latex()))
+                    elif foo.__name__ == 'amp_factor':
+                        return display(Math(latex(foo(self, *args, **kwargs))))
             except:
-                return pretty_print(foo(self, *args, **kwargs))
+                symbolic_form = foo(self, *args, **kwargs)
+                subs_dict = {}
+                for indep in self.indepVarsSym:
+                    subs_dict['\Delta{}'.format('{'+str(indep)+'}')] = var('d{}'.format(str(indep)))
+                return pprint(symbolic_form.subs(subs_dict))
 
 
         return Print
@@ -333,8 +349,7 @@ class DifferentialEquation:
             me_rhs += coefs[key] * derivs[key]
             self.__latex_ME['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
         self.__ME = Eq(me_lhs, me_rhs)
-
-        return self.__latex()
+        return self.__ME
 
     def __solve_amp_factor(self):
         '''
@@ -367,7 +382,8 @@ class DifferentialEquation:
         lhs = symbols('alpha')
         rhs = self.__solve_amp_factor()
         self.__amp_factor = Eq(lhs,rhs)
-        return latex(self.__amp_factor)
+        self.__latex_amp_factor = latex(self.__amp_factor)
+        return self.__amp_factor
 
     def __latex(self):
         '''
