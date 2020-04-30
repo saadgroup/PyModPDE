@@ -13,6 +13,17 @@ __status__ = "Production"
 
 from sympy import *
 from itertools import product
+import functools
+
+import os
+
+try:
+    from IPython import get_ipython
+    if 'IPKernelApp' not in get_ipython().config:  # pragma: no cover
+        raise ImportError("console")
+    from IPython.display import display, Math, clear_output
+except:
+    pass
 
 i, j, k, n = symbols('i j k n')
 
@@ -64,7 +75,7 @@ class DifferentialEquation:
             self.indepVarsSym.append(self.t['sym'])
             self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
 
-            self.latex_ME = {'lhs': '', 'rhs': {}}
+            self.__latex_ME = {'lhs': '', 'rhs': {}}
 
             self.indicies = {}
             for var in self.__independentVars:
@@ -74,6 +85,18 @@ class DifferentialEquation:
                 **self.indicies)) / \
                        self.t['variation']
             self.rhs = None
+
+    @property
+    def ME(self):
+        return self.__ME
+
+    @property
+    def Latex_ME(self):
+        return self.__latex_ME
+
+    @property
+    def Amp_Factor(self):
+        return self.__amp_factor
 
     def get_independent_vars(self):
         '''
@@ -241,6 +264,19 @@ class DifferentialEquation:
                     self.vars[direction]['variation'] ** order)
         return ratsimp(expression)
 
+    def __printer(foo):
+        @functools.wraps(foo)
+        def Print(self, *args, **kwargs):
+            try:
+                if 'IPKernelApp' in get_ipython().config:  # pragma: no cover
+                    return display(Math(foo(self, *args, **kwargs)))
+            except:
+                return pretty_print(foo(self, *args, **kwargs))
+
+
+        return Print
+
+    @__printer
     def modified_equation(self, nterms):
         '''
         Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
@@ -292,11 +328,11 @@ class DifferentialEquation:
 
         me_lhs = Derivative(self.dependentVar, self.t['sym'], 1)
         me_rhs = 0
-        self.latex_ME['lhs'] = latex(me_lhs)
+        self.__latex_ME['lhs'] = latex(me_lhs)
         for key in coefs.keys():
             me_rhs += coefs[key] * derivs[key]
-            self.latex_ME['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
-        self.ME = Eq(me_lhs, me_rhs)
+            self.__latex_ME['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
+        self.__ME = Eq(me_lhs, me_rhs)
 
         return self.__latex()
 
@@ -320,6 +356,7 @@ class DifferentialEquation:
         q = log(logEqdt) / self.t['variation']  # amplification factor
         return q
 
+    @__printer
     def amp_factor(self):
         '''
         Creats the latex representation of the amplification factor
@@ -329,8 +366,8 @@ class DifferentialEquation:
         '''
         lhs = symbols('alpha')
         rhs = self.__solve_amp_factor()
-        eq = Eq(lhs,rhs)
-        return latex(eq)
+        self.__amp_factor = Eq(lhs,rhs)
+        return latex(self.__amp_factor)
 
     def __latex(self):
         '''
@@ -339,9 +376,9 @@ class DifferentialEquation:
 
         '''
         strings = {}
-        for key in self.latex_ME['rhs'].keys():
+        for key in self.__latex_ME['rhs'].keys():
             num = sum([int(x) for x in [char for char in key]])
-            string = self.latex_ME['rhs'][key]
+            string = self.__latex_ME['rhs'][key]
             firstDelPos = string.rfind("{")
             secondDelPos = string.rfind("}")
             string = string.replace(string[firstDelPos:secondDelPos + 1], "")
@@ -354,7 +391,7 @@ class DifferentialEquation:
                 strings[num] += ' ' + string if string[0] == '-' else ' + ' + string
             else:
                 strings[num] = ' ' + string if string[0] == '-' else ' + ' + string
-        lhs_string = self.latex_ME['lhs']
+        lhs_string = self.__latex_ME['lhs']
         firstDelPos = lhs_string.rfind("{")
         secondDelPos = lhs_string.rfind("}")
         lhs_string = lhs_string.replace(lhs_string[firstDelPos:secondDelPos + 1], "")
