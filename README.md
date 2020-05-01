@@ -4,7 +4,7 @@
 
 PyModPDE is a Python software that generates the modified equation for a first order time dependent partial differential equation (PDE) of the form
 <br/>
-<img src="http://latex.codecogs.com/svg.latex?u_t&space;=&space;\alpha_1&space;u_x&space;&plus;&space;\alpha_2&space;u_xx&space;&plus;&space;\ldots&space;=&space;\sum_1^M&space;\alpha_n&space;\frac{\partial&space;^n&space;u}{\partial&space;x^n}" title="u_t = \alpha_1 u_x + \alpha_2 u_xx + \ldots = \sum_n=1^M \alpha_n \frac{\partial ^n u}{\partial x^n}" />
+<img src="http://latex.codecogs.com/svg.latex?u_t&space;=&space;\alpha_1&space;u_x&space;&plus;&space;\alpha_2&space;u_xx&space;&plus;&space;\ldots&space;=&space;\sum_1^M&space;\alpha_n&space;\frac{\partial&space;^n&space;u}{\partial&space;x^n}" title="u_t = \alpha_1 u_x + \alpha_2 u_xx + \ldots = \sum_n=1^M \alpha_n \frac{\partial ^n u}{\partial x^n}"/>
 <br/>
 Given a certain finite difference scheme for the PDE, 
 <br/>
