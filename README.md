@@ -4,15 +4,15 @@
 
 PyModPDE is a Python software that generates the modified equation for a first order time dependent partial differential equation (PDE) of the form
 <br/>
-<img src="https://latex.codecogs.com/svg.latex?u_t&space;=&space;\alpha_1&space;u_x&space;&plus;&space;\alpha_2&space;u_xx&space;&plus;&space;\ldots&space;=&space;\sum_1^M&space;\alpha_n&space;\frac{\partial&space;^n&space;u}{\partial&space;x^n}" title="u_t = \alpha_1 u_x + \alpha_2 u_xx + \ldots = \sum_n=1^M \alpha_n \frac{\partial ^n u}{\partial x^n}" />
+<img src="http://latex.codecogs.com/svg.latex?u_t&space;=&space;\alpha_1&space;u_x&space;&plus;&space;\alpha_2&space;u_xx&space;&plus;&space;\ldots&space;=&space;\sum_1^M&space;\alpha_n&space;\frac{\partial&space;^n&space;u}{\partial&space;x^n}" title="u_t = \alpha_1 u_x + \alpha_2 u_xx + \ldots = \sum_n=1^M \alpha_n \frac{\partial ^n u}{\partial x^n}" />
 <br/>
 Given a certain finite difference scheme for the PDE, 
 <br/>
-<img src="https://latex.codecogs.com/svg.latex?\delta_{t}u&plus;\delta_{x}u&space;&plus;&space;&plus;\delta_{xx}u&space;&plus;\ldots&space;=0" title="\delta_{t}u+\delta_{x}u + +\delta_{xx}u +\ldots =0" />
+<img src="http://latex.codecogs.com/svg.latex?\delta_{t}u&plus;\delta_{x}u&space;&plus;&space;&plus;\delta_{xx}u&space;&plus;\ldots&space;=0" title="\delta_{t}u+\delta_{x}u + +\delta_{xx}u +\ldots =0" />
 <br/>
 PyModPDE computes the amplification factor of the finite difference scheme and also returns the the modified equation in the form
 <br/>
-<img src="https://latex.codecogs.com/svg.latex?u_{t}=a_{1}u_{x}&plus;a_{2}u_{xx}&plus;a_{3}u_{xxx}&plus;\cdots=\sum_1^P&space;a_{n}\frac{\partial^{n}u}{\partial&space;x^{n}}." title="u_{t}=a_{1}u_{x}+a_{2}u_{xx}+a_{3}u_{xxx}+\cdots=\sum_n=1^P a_{n}\frac{\partial^{n}u}{\partial x^{n}}." />
+<img src="http://latex.codecogs.com/svg.latex?u_{t}=a_{1}u_{x}&plus;a_{2}u_{xx}&plus;a_{3}u_{xxx}&plus;\cdots=\sum_1^P&space;a_{n}\frac{\partial^{n}u}{\partial&space;x^{n}}." title="u_{t}=a_{1}u_{x}+a_{2}u_{xx}+a_{3}u_{xxx}+\cdots=\sum_n=1^P a_{n}\frac{\partial^{n}u}{\partial x^{n}}." />
 <br/>
 where, in general, there are inifinitely more terms in the modified equation compared to the original PDE (P > M).
 
