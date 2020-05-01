@@ -319,7 +319,8 @@ class DifferentialEquation:
         a_ijk * u_{ijk}.
 
         Parameters:
-            nterms (int):Number of terms to compute in the modified equation
+            nterms (int): select the order up to which we compute the modified equation coefficients. It has to be greater than the derivative order
+                          of the RHS terms.
 
         Returns:
              latex (display): Latex formatted representation of the modified equation as ' lhs = rhs ' in jupyter or console
