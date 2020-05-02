@@ -63,10 +63,10 @@ advectionTerm1 = DE.expr(order=1,  direction='x', time=n, stencil=[-1, 0])
 DE.set_rhs(- a * advectionTerm1 )
 
 # displaying the amplification factor
-pretty_print(DE.amp_factor())
+DE.amp_factor()
 
 # computing and displaying the modified equation up to two terms
-pretty_print(DE.modified_equation(nterms=2))
+DE.modified_equation(nterms=2)
 
 ```
 
@@ -88,10 +88,10 @@ advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
 DE.set_rhs(- a * advectionTerm )
 
 # displaying the amplification factor
-pretty_print(DE.amp_factor())
+DE.amp_factor()
 
 # computing and displaying the modified equation up to two terms
-pretty_print(DE.modified_equation(nterms=2))
+DE.modified_equation(nterms=2)
 ```
 
 ---
