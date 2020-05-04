@@ -93,7 +93,7 @@ class DifferentialEquation:
 
 
     @property
-    def ME(self):
+    def symbolicModifiedEquation(self):
         '''
         Returns:
              the symbolic modified equation
@@ -101,7 +101,7 @@ class DifferentialEquation:
         return self.__ME
 
     @property
-    def Latex_ME(self):
+    def latexModifiedEquation(self):
         '''
         Returns:
              the Latex string of the modified equation
@@ -109,7 +109,7 @@ class DifferentialEquation:
         return self.__latex()
 
     @property
-    def Latex_Amp_Factor(self):
+    def latexAmplificationFactor(self):
         '''
         Returns:
              the Latex string of the amplification factor
@@ -117,7 +117,7 @@ class DifferentialEquation:
         return self.__latex_amp_factor
 
     @property
-    def Amp_Factor(self):
+    def symbolicAmplificationFactor(self):
         '''
         Returns:
              the symbolic amplification factor
@@ -125,7 +125,7 @@ class DifferentialEquation:
         return self.__amp_factor
 
     @property
-    def Amp_Factor_Exponent(self):
+    def symbolicAmplificationFactorExponent(self):
         '''
         Returns:
              the symbolic amplification factor exponent
@@ -133,15 +133,15 @@ class DifferentialEquation:
         return self.__amp_factor_exponent
 
     @property
-    def Latex_Amp_Factor_Exponent(self):
+    def latexAmplificationFactorExponent(self):
         '''
         Returns:
              the Latex string of the amplification factor exponent
         '''
         return self.__latex_amp_factor_exponent
 
-
-    def get_independent_vars(self):
+    @property
+    def independentVars(self):
         '''
         Returns:
             self.__independentVars (list): list of independent variables names
@@ -318,7 +318,7 @@ class DifferentialEquation:
                     if foo.__name__ == 'modified_equation':
                         foo(self, *args, **kwargs)
                         return display(Math(self.__latex()))
-                    elif foo.__name__ == 'amp_factor':
+                    elif foo.__name__ in ['amp_factor','amp_factor_exponent'] :
                         return display(Math(latex(foo(self, *args, **kwargs))))
             except:
                 symbolic_form = foo(self, *args, **kwargs)
@@ -466,7 +466,8 @@ class DifferentialEquation:
              (expression): symbolic expression of the rhs of the amplification factor
         '''
         e_alpha_dt = self.__solve_amp_factor()
-        q = 1/self.t['variation'] * log(e_alpha_dt)   # amplification factor
+        q = 1/self.t['variation'] * log(e_alpha_dt)  # alpha
+        self.__amp_factor_exponent = q
         return q
 
     def __solve_amp_factor(self):
