@@ -88,6 +88,9 @@ class DifferentialEquation:
             self.__latex_amp_factor = None
             self.__ME = None
             self.__amp_factor = None
+            self.__amp_factor_exponent = None
+            self.__latex_amp_factor_exponent = None
+
 
     @property
     def ME(self):
@@ -120,6 +123,23 @@ class DifferentialEquation:
              the symbolic amplification factor
         '''
         return self.__amp_factor
+
+    @property
+    def Amp_Factor_Exponent(self):
+        '''
+        Returns:
+             the symbolic amplification factor exponent
+        '''
+        return self.__amp_factor_exponent
+
+    @property
+    def Latex_Amp_Factor_Exponent(self):
+        '''
+        Returns:
+             the Latex string of the amplification factor exponent
+        '''
+        return self.__latex_amp_factor_exponent
+
 
     def get_independent_vars(self):
         '''
@@ -329,7 +349,7 @@ class DifferentialEquation:
 
         assert nterms > 0, 'modified_equation() member nterms={} has to be greater than zero.'.format(nterms)
 
-        q = self.__solve_amp_factor()
+        q = self.__solve_amp_exponent()
 
         order = self.__infer_order(q) # infering maximum order from the amplification factor.
 
@@ -438,13 +458,18 @@ class DifferentialEquation:
         return order
 
 
-    def __solve_amp_factor(self):
+    def __solve_amp_exponent(self):
         '''
         Solve for the amplification factor of the numerical discritazation of the partial differential equation
 
         Returns:
              (expression): symbolic expression of the rhs of the amplification factor
         '''
+        e_alpha_dt = self.__solve_amp_factor()
+        q = 1/self.t['variation'] * log(e_alpha_dt)   # amplification factor
+        return q
+
+    def __solve_amp_factor(self):
         A = symbols('A')
         # compute the amplification factor
         lhs1 = simplify(self.lhs / self.dependent_var_func(self.t['index'], **self.indicies))
@@ -454,9 +479,8 @@ class DifferentialEquation:
         eq = eq.subs(exp(self.t['variation'] * self.t['ampFactor']), A)
         eq = expand(eq)
         eq = collect(eq, A)
-        logEqdt = simplify(solve(eq, A)[0])
-        q = log(logEqdt) / self.t['variation']  # amplification factor
-        return q
+        e_alpha_dt = simplify(solve(eq, A)[0])
+        return e_alpha_dt
 
     @__printer
     def amp_factor(self):
@@ -466,11 +490,25 @@ class DifferentialEquation:
         Returns:
             latex (display): Latex formatted representation of the amplification factor as ' lhs = rhs ' in jupyter or console
         '''
-        lhs = symbols('alpha')
+        lhs = exp(symbols('alpha')*self.t['variation'])
         rhs = self.__solve_amp_factor()
         self.__amp_factor = Eq(lhs,rhs)
         self.__latex_amp_factor = latex(self.__amp_factor)
         return self.__amp_factor
+
+    @__printer
+    def amp_factor_exponent(self):
+        '''
+        Creats the latex representation of the amplification factor exponent \alpha
+
+        Returns:
+            latex (display): Latex formatted representation of the amplification factor exponent as ' lhs = rhs ' in jupyter or console
+        '''
+        lhs = symbols('alpha')
+        rhs = self.__solve_amp_exponent()
+        self.__amp_factor_exponent = Eq(lhs, rhs)
+        self.__latex_amp_factor_exponent = latex(self.__amp_factor_exponent)
+        return self.__amp_factor_exponent
 
     def __latex(self):
         '''
