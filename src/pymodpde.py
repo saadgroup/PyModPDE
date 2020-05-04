@@ -15,7 +15,6 @@ from sympy import *
 from itertools import product
 import functools
 
-import os
 
 try:
     from IPython import get_ipython
@@ -319,8 +318,7 @@ class DifferentialEquation:
         a_ijk * u_{ijk}.
 
         Parameters:
-            nterms (int): select the order up to which we compute the modified equation coefficients. It has to be greater than the derivative order
-                          of the RHS terms.
+            nterms (int): Number of in the modified equation. nterms is greater than zero.
 
         Returns:
              latex (display): Latex formatted representation of the modified equation as ' lhs = rhs ' in jupyter or console
@@ -332,8 +330,11 @@ class DifferentialEquation:
         assert nterms > 0, 'modified_equation() member nterms={} has to be greater than zero.'.format(nterms)
 
         q = self.__solve_amp_factor()
-        couples = [i for i in product(list(range(0, nterms + 1)), repeat=len(self.__independentVars)) if
-                   (sum(i) <= nterms and sum(i) > 0)]
+
+        order = self.__infer_order(q) # infering maximum order from the amplification factor.
+
+        couples = (i for i in product(list(range(0, order + nterms)), repeat=len(self.__independentVars)) if
+                   (sum(i) < order + nterms and sum(i) > 0))
 
         coefs = {}
         derivs = {}
@@ -370,6 +371,72 @@ class DifferentialEquation:
             self.__latex_ME['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
         self.__ME = Eq(me_lhs, me_rhs)
         return self.__ME
+
+    def __infer_order(self, amp_factor):
+        '''
+        This function is used to infer the highest derivative order on  the rhs of the PDE using the amplification factor.
+        this is done by counting the instances of differential elements and by searching for combinations of these elements
+        in the amplification factor.
+        :param amp_factor: symbolic expression of the amplification factor
+        :return: (int) the order-derivative of the PDE's RHS.
+        '''
+
+        maximums = [0 for _ in range(
+            len(self.__independentVars))]  # initiating a list with zeros based on the number of independent variables
+        orders = []  # list that store the order each derivative with respect to one independent variable ( not for cross derivative)
+
+        def rep(expr):
+            '''
+            Recursive function that traverse the symbolic tree searching for the differential elements (represents derivative order)
+            and store the results in a list.
+            :param expr: a symbolic expression
+            :return: None
+            '''
+            base_expr = expr.as_base_exp()  # infer the exponents of the expression
+            # if (len(base_expr) == 2 ) and (str(self.dx) == str(base_expr[0]) or str(self.dy) == str(base_expr[0])):
+            if (len(base_expr) == 2) and any(list(
+                    [str(self.vars[self.__independentVars[num]]['variation']) == str(base_expr[0]) for num in
+                     range(len(self.__independentVars))])):
+                # if the base expr is one of the differential elements store that into the orders list
+                orders.append(base_expr)
+                # print(expr.as_base_exp())
+            for arg in expr.args:
+                rep(arg)  # recursively call rep to transverse the amplification factor symbolic tree.
+
+        rep(amp_factor)  # calling the function rep
+
+        # in this for loop we go over all the values in orders and look for the maximum value of exponents
+        # and store them in an organized way in maximums list
+        for arg in orders:
+            for num, var in enumerate(self.__independentVars):
+                if arg[0] == self.vars[var]['variation']:
+                    maximums[num] = max(maximums[num], abs(arg[1]))
+
+                # print(amp_factor.has(self.vars[var]['variation']**maximums[num]))
+
+        # checking for cross derivatives orders.
+        ranges = [range(-max, max + 1) for max in maximums]
+        # print(*ranges)
+        products = list(product(*ranges))
+        # print(list(products))
+
+        comb_max = 0
+        for p in products:
+            var_comb = 1
+            for num in range(len(maximums)):
+                var_comb *= self.vars[self.__independentVars[num]]['variation'] ** p[num]
+
+            if amp_factor.has(var_comb):
+                comb_max = max(comb_max, sum([abs(p[i]) for i in range(len(p))]))
+
+            # print('{}, {}'.format(var_comb,amp_factor.has(var_comb)))
+
+        # choosing the maximum value for order between derivatives and cross derivatives.
+        order = max(max(maximums), comb_max)
+
+        # value for the maximum order on the rhs
+        return order
+
 
     def __solve_amp_factor(self):
         '''
