@@ -500,7 +500,7 @@ class DifferentialEquation:
     @__printer
     def amp_factor_exponent(self):
         '''
-        Creats the latex representation of the amplification factor exponent \alpha
+        Creats the latex representation of the amplification factor exponent alpha
 
         Returns:
             latex (display): Latex formatted representation of the amplification factor exponent as ' lhs = rhs ' in jupyter or console
