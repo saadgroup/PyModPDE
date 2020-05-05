@@ -19,15 +19,15 @@ where, in general, there are inifinitely more terms in the modified equation com
 # Usage
 To use PyModPDE, one has to instantiate a first order time dependent differential equation object by calling its constructor that has the following signature
 ```Python
-DifferentialEquation(dependentVar,independentVars,indices=[i, j, k], timeIndex=n)
+DifferentialEquation(dependentVarName,independentVarsNames,indices=[i, j, k], timeIndex=n)
 ```
 Once the user constructs an object of type `DifferentialEquation`, the next step is to start constructing the right-hand-side RHS for this equation. Two methods are available to achieve this: the first is to use the member function `expr` which has the following signature
 ```Python
-expr(order, direction, time, stencil)
+expr(order, directionName, time, stencil)
 ```
-The second method is to use the dependent variable `name`, the `indices`, and the differential elements of the independent variable defined by the user, `d<independentVars>`. The signature of the member function `<dependentVars>` is as follow
+The second method is to use the dependent variable `name`, the `indices`, and the differential elements of the independent variable defined by the user, `d<independentVarsNames>`. The signature of the member function `<dependentVarName>` is as follow
 ```Python
-<dependentVar>(time, **kwargs)
+<dependentVarName>(time, **kwargs)
 ```
 `time` here is the discrete time at which the expression of the dependent variable is evaluated ex: `n+1, n, ...` . `kwargs`are indicies of the spatial points at which this expression is evaluated, ex: `x=i+1, y=j, ...`.
 
@@ -54,10 +54,10 @@ from src.pymodpde import DifferentialEquation, i, n
 a= symbols('a') 
 
 #constructing a time dependent differential equation
-DE = DifferentialEquation(dependentVar='u',independentVars=['x']) 
+DE = DifferentialEquation(dependentVarName='u',independentVarsNames=['x']) 
 
 # method I of constructing the rhs:
-advectionTerm1 = DE.expr(order=1,  direction='x', time=n, stencil=[-1, 0]) 
+advectionTerm1 = DE.expr(order=1,  directionName='x', time=n, stencil=[-1, 0]) 
 
 # setting the rhs of the differential equation
 DE.set_rhs(- a * advectionTerm1 )
@@ -70,7 +70,7 @@ DE.modified_equation(nterms=2)
 
 ```
 
-Similarly, one can use the `<dependentVar>(...)` instead of `expr(...)` to construct the discretization of the rhs 
+Similarly, one can use the `<dependentVarName>(...)` instead of `expr(...)` to construct the discretization of the rhs 
 
 ```Python
 from src.pymodpde import DifferentialEquation, i, n 
@@ -79,7 +79,7 @@ from src.pymodpde import DifferentialEquation, i, n
 a= symbols('a') 
 
 #constructing a time dependent differential equation
-DE = DifferentialEquation(dependentVar='u',independentVars=['x']) 
+DE = DifferentialEquation(dependentVarName='u',independentVarsNames=['x']) 
 
 # method II of constructing the rhs:
 advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx 
