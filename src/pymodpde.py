@@ -28,41 +28,41 @@ i, j, k, n = symbols('i j k n')
 
 
 class DifferentialEquation:
-    def __init__(self, dependentVar: str, independentVars: list, indices: list = [i, j, k],
+    def __init__(self, dependentVarName: str, independentVarsNames: list, indices: list = [i, j, k],
                  timeIndex: symbol.Symbol = n):
         '''
         Parameters:
-            dependentVar (string): name of the dependent variable
-            independentVars (list of string): names of the independent variables
+            dependentVarName (string): name of the dependent variable
+            independentVarsNames (list of string): names of the independent variables
             indices (list of symbols): symbols for the indices of the independent variables
             timeIndex (symbol): symbolic variable of the time index
 
         Examples:
-            >>> DE = DifferentialEquation(dependentVar='u', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
+            >>> DE = DifferentialEquation(dependentVarName='u', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
         '''
 
-        assert isinstance(dependentVar,
-                          str), 'DifferentialEquation() parameter dependentVar={} not of <class "str">'.format(
-            dependentVar)
-        assert isinstance(independentVars,
-                          list), 'independentVars() parameter independentVars={} not of <class "list">'.format(
-            independentVars)
+        assert isinstance(dependentVarName,
+                          str), 'DifferentialEquation() parameter dependentVarName={} not of <class "str">'.format(
+            dependentVarName)
+        assert isinstance(independentVarsNames,
+                          list), 'independentVarsNames() parameter independentVarsNames={} not of <class "list">'.format(
+            independentVarsNames)
         assert isinstance(indices, list), 'indices() parameter indices={} not of <class "list">'.format(indices)
         assert isinstance(timeIndex,
                           symbol.Symbol), 'timeIndex() parameter timeIndex={} not of <class "sympy.core.symbol.Symbol">'.format(
             timeIndex)
-        for indepVar in independentVars:
-            assert isinstance(indepVar, str), 'independentVars members are not of <class "str">'.format(independentVars)
+        for indepVar in independentVarsNames:
+            assert isinstance(indepVar, str), 'independentVarsNames members are not of <class "str">'.format(independentVarsNames)
         for index in indices:
             assert isinstance(index,
                               symbol.Symbol), 'indices members are not of <class "sympy.core.symbol.Symbol">'.format(
                 indices)
 
-        if len(independentVars) > 3:
+        if len(independentVarsNames) > 3:
             raise Exception('No more than three independent variable is allowed!')
         else:
-            self.__independentVars = independentVars
-            self.__dependentVar_name = dependentVar
+            self.__independentVars = independentVarsNames
+            self.__dependentVar_name = dependentVarName
 
             self.__indices = indices
             self.__timeIndex = timeIndex
@@ -193,14 +193,14 @@ class DifferentialEquation:
             the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme
 
             >>> i, j, n, a = symbols("i j n a")
-            >>> DE = DifferentialEquation(dependentVar='u', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
+            >>> DE = DifferentialEquation(dependentVarName='u', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
             >>> advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
             >>> DE.set_rhs(advection)
             >>> pretty_print(DE.modified_equation(nterms=2))
 
             another example where we change the name of the dependent variable from 'u' to 'f'
             >>> i, j, n, a = symbols("i j n a")
-            >>> DE = DifferentialEquation(dependentVar='f', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
+            >>> DE = DifferentialEquation(dependentVarName='f', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
             >>> advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
             >>> DE.set_rhs(advection)
             >>> pretty_print(DE.modified_equation(nterms=2))
@@ -262,13 +262,13 @@ class DifferentialEquation:
         coefs = list(M.inv() * b)
         return {'points': points, 'coefs': coefs}
 
-    def expr(self, order, direction, time, stencil):
+    def expr(self, order, directionName, time, stencil):
         '''
-        Generates an expression based on the stencil, the direction,  order of the derivative, and the time at which the expression is evaluated.
+        Generates an expression based on the stencil, the directionName,  order of the derivative, and the time at which the expression is evaluated.
 
         Parameters:
             order (int): order of the derivative
-            direction (string): the name of the independent variable that indicate the direction of the derivative
+            directionName (string): the name of the independent variable that indicate the directionName of the derivative
             time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
             stencil (list of int): N points used for the stencil gen function
 
@@ -276,12 +276,12 @@ class DifferentialEquation:
             symbolic expression
 
         Examples:
-             >>> <DE>.expr(order=1, direction='x', time=n, stencil=[-1,0])
+             >>> <DE>.expr(order=1, directionName='x', time=n, stencil=[-1,0])
         '''
 
-        assert isinstance(direction, str), 'exp() parameter direcction={} not of <class "str">'.format(direction)
-        assert direction in self.__independentVars, 'direcction={} not an independent variable. indepVar={}'.format(
-            direction, self.__independentVars)
+        assert isinstance(directionName, str), 'exp() parameter direcction={} not of <class "str">'.format(directionName)
+        assert directionName in self.__independentVars, 'direcction={} not an independent variable. indepVar={}'.format(
+            directionName, self.__independentVars)
         assert isinstance(time, add.Add) \
                or isinstance(time,symbol.Symbol), \
                'expr() parameter time={} not of <class "sympy.core.add.Add">,' \
@@ -299,12 +299,12 @@ class DifferentialEquation:
 
             kwargs = {}
             for var in self.__independentVars:
-                if var == direction:
-                    kwargs[var] = self.vars[direction]['index'] + pt
+                if var == directionName:
+                    kwargs[var] = self.vars[directionName]['index'] + pt
                 else:
                     kwargs[var] = self.vars[var]['index']
             expression += coef * self.dependent_var_func(time=time, **kwargs) / (
-                    self.vars[direction]['variation'] ** order)
+                    self.vars[directionName]['variation'] ** order)
         return ratsimp(expression)
 
     def __printer(foo):
@@ -561,12 +561,12 @@ class DifferentialEquation:
             expression (symbolic expression): linear combination of expression generated from <DE\>.expr(...) or <DE\>.<dependentVar\>(...)
 
         Examples:
-            >>> DE = DifferentialEquation(dependentVar="u",independentVars =["x"])
+            >>> DE = DifferentialEquation(dependentVarName="u",independentVarsNames =["x"])
             >>> a = symbols('a')
 
             using DE.expr(...)
 
-            >>> advectionTerm = DE.expr(order=1,direction="x",time=n,stencil=[-1, 0])
+            >>> advectionTerm = DE.expr(order=1,directionName="x",time=n,stencil=[-1, 0])
             >>> DE.set_rhs(expression= - a * advectionTerm)
 
             or using  DE.<dependentVar\>(...)

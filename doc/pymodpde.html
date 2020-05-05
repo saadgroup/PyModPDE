@@ -57,41 +57,41 @@ i, j, k, n = symbols(&#39;i j k n&#39;)
 
 
 class DifferentialEquation:
-    def __init__(self, dependentVar: str, independentVars: list, indices: list = [i, j, k],
+    def __init__(self, dependentVarName: str, independentVarsNames: list, indices: list = [i, j, k],
                  timeIndex: symbol.Symbol = n):
         &#39;&#39;&#39;
         Parameters:
-            dependentVar (string): name of the dependent variable
-            independentVars (list of string): names of the independent variables
+            dependentVarName (string): name of the dependent variable
+            independentVarsNames (list of string): names of the independent variables
             indices (list of symbols): symbols for the indices of the independent variables
             timeIndex (symbol): symbolic variable of the time index
 
         Examples:
-            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;u&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#39;u&#39;, independentVarsNames=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
         &#39;&#39;&#39;
 
-        assert isinstance(dependentVar,
-                          str), &#39;DifferentialEquation() parameter dependentVar={} not of &lt;class &#34;str&#34;&gt;&#39;.format(
-            dependentVar)
-        assert isinstance(independentVars,
-                          list), &#39;independentVars() parameter independentVars={} not of &lt;class &#34;list&#34;&gt;&#39;.format(
-            independentVars)
+        assert isinstance(dependentVarName,
+                          str), &#39;DifferentialEquation() parameter dependentVarName={} not of &lt;class &#34;str&#34;&gt;&#39;.format(
+            dependentVarName)
+        assert isinstance(independentVarsNames,
+                          list), &#39;independentVarsNames() parameter independentVarsNames={} not of &lt;class &#34;list&#34;&gt;&#39;.format(
+            independentVarsNames)
         assert isinstance(indices, list), &#39;indices() parameter indices={} not of &lt;class &#34;list&#34;&gt;&#39;.format(indices)
         assert isinstance(timeIndex,
                           symbol.Symbol), &#39;timeIndex() parameter timeIndex={} not of &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
             timeIndex)
-        for indepVar in independentVars:
-            assert isinstance(indepVar, str), &#39;independentVars members are not of &lt;class &#34;str&#34;&gt;&#39;.format(independentVars)
+        for indepVar in independentVarsNames:
+            assert isinstance(indepVar, str), &#39;independentVarsNames members are not of &lt;class &#34;str&#34;&gt;&#39;.format(independentVarsNames)
         for index in indices:
             assert isinstance(index,
                               symbol.Symbol), &#39;indices members are not of &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
                 indices)
 
-        if len(independentVars) &gt; 3:
+        if len(independentVarsNames) &gt; 3:
             raise Exception(&#39;No more than three independent variable is allowed!&#39;)
         else:
-            self.__independentVars = independentVars
-            self.__dependentVar_name = dependentVar
+            self.__independentVars = independentVarsNames
+            self.__dependentVar_name = dependentVarName
 
             self.__indices = indices
             self.__timeIndex = timeIndex
@@ -222,14 +222,14 @@ class DifferentialEquation:
             the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme
 
             &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
-            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;u&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#39;u&#39;, independentVarsNames=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
             &gt;&gt;&gt; advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
             &gt;&gt;&gt; DE.set_rhs(advection)
             &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
 
             another example where we change the name of the dependent variable from &#39;u&#39; to &#39;f&#39;
             &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
-            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;f&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#39;f&#39;, independentVarsNames=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
             &gt;&gt;&gt; advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
             &gt;&gt;&gt; DE.set_rhs(advection)
             &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
@@ -291,13 +291,13 @@ class DifferentialEquation:
         coefs = list(M.inv() * b)
         return {&#39;points&#39;: points, &#39;coefs&#39;: coefs}
 
-    def expr(self, order, direction, time, stencil):
+    def expr(self, order, directionName, time, stencil):
         &#39;&#39;&#39;
-        Generates an expression based on the stencil, the direction,  order of the derivative, and the time at which the expression is evaluated.
+        Generates an expression based on the stencil, the directionName,  order of the derivative, and the time at which the expression is evaluated.
 
         Parameters:
             order (int): order of the derivative
-            direction (string): the name of the independent variable that indicate the direction of the derivative
+            directionName (string): the name of the independent variable that indicate the directionName of the derivative
             time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
             stencil (list of int): N points used for the stencil gen function
 
@@ -305,12 +305,12 @@ class DifferentialEquation:
             symbolic expression
 
         Examples:
-             &gt;&gt;&gt; &lt;DE&gt;.expr(order=1, direction=&#39;x&#39;, time=n, stencil=[-1,0])
+             &gt;&gt;&gt; &lt;DE&gt;.expr(order=1, directionName=&#39;x&#39;, time=n, stencil=[-1,0])
         &#39;&#39;&#39;
 
-        assert isinstance(direction, str), &#39;exp() parameter direcction={} not of &lt;class &#34;str&#34;&gt;&#39;.format(direction)
-        assert direction in self.__independentVars, &#39;direcction={} not an independent variable. indepVar={}&#39;.format(
-            direction, self.__independentVars)
+        assert isinstance(directionName, str), &#39;exp() parameter direcction={} not of &lt;class &#34;str&#34;&gt;&#39;.format(directionName)
+        assert directionName in self.__independentVars, &#39;direcction={} not an independent variable. indepVar={}&#39;.format(
+            directionName, self.__independentVars)
         assert isinstance(time, add.Add) \
                or isinstance(time,symbol.Symbol), \
                &#39;expr() parameter time={} not of &lt;class &#34;sympy.core.add.Add&#34;&gt;,&#39; \
@@ -328,12 +328,12 @@ class DifferentialEquation:
 
             kwargs = {}
             for var in self.__independentVars:
-                if var == direction:
-                    kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
+                if var == directionName:
+                    kwargs[var] = self.vars[directionName][&#39;index&#39;] + pt
                 else:
                     kwargs[var] = self.vars[var][&#39;index&#39;]
             expression += coef * self.dependent_var_func(time=time, **kwargs) / (
-                    self.vars[direction][&#39;variation&#39;] ** order)
+                    self.vars[directionName][&#39;variation&#39;] ** order)
         return ratsimp(expression)
 
     def __printer(foo):
@@ -529,7 +529,7 @@ class DifferentialEquation:
     @__printer
     def amp_factor_exponent(self):
         &#39;&#39;&#39;
-        Creats the latex representation of the amplification factor exponent \alpha
+        Creats the latex representation of the amplification factor exponent alpha
 
         Returns:
             latex (display): Latex formatted representation of the amplification factor exponent as &#39; lhs = rhs &#39; in jupyter or console
@@ -590,12 +590,12 @@ class DifferentialEquation:
             expression (symbolic expression): linear combination of expression generated from &lt;DE\&gt;.expr(...) or &lt;DE\&gt;.&lt;dependentVar\&gt;(...)
 
         Examples:
-            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#34;u&#34;,independentVarsNames =[&#34;x&#34;])
             &gt;&gt;&gt; a = symbols(&#39;a&#39;)
 
             using DE.expr(...)
 
-            &gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction=&#34;x&#34;,time=n,stencil=[-1, 0])
+            &gt;&gt;&gt; advectionTerm = DE.expr(order=1,directionName=&#34;x&#34;,time=n,stencil=[-1, 0])
             &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
 
             or using  DE.&lt;dependentVar\&gt;(...)
@@ -636,14 +636,14 @@ class DifferentialEquation:
 <dl>
 <dt id="pymodpde.DifferentialEquation"><code class="flex name class">
 <span>class <span class="ident">DifferentialEquation</span></span>
-<span>(</span><span>dependentVar, independentVars, indices=[i, j, k], timeIndex=n)</span>
+<span>(</span><span>dependentVarName, independentVarsNames, indices=[i, j, k], timeIndex=n)</span>
 </code></dt>
 <dd>
 <section class="desc"><h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>dependentVar</code></strong> :&ensp;<code>string</code></dt>
+<dt><strong><code>dependentVarName</code></strong> :&ensp;<code>string</code></dt>
 <dd>name of the dependent variable</dd>
-<dt><strong><code>independentVars</code></strong> :&ensp;<code>list</code> of <code>string</code></dt>
+<dt><strong><code>independentVarsNames</code></strong> :&ensp;<code>list</code> of <code>string</code></dt>
 <dd>names of the independent variables</dd>
 <dt><strong><code>indices</code></strong> :&ensp;<code>list</code> of <code>symbols</code></dt>
 <dd>symbols for the indices of the independent variables</dd>
@@ -651,48 +651,48 @@ class DifferentialEquation:
 <dd>symbolic variable of the time index</dd>
 </dl>
 <h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; DE = DifferentialEquation(dependentVar='u', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
+<pre><code>&gt;&gt;&gt; DE = DifferentialEquation(dependentVarName='u', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
 </code></pre></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class DifferentialEquation:
-    def __init__(self, dependentVar: str, independentVars: list, indices: list = [i, j, k],
+    def __init__(self, dependentVarName: str, independentVarsNames: list, indices: list = [i, j, k],
                  timeIndex: symbol.Symbol = n):
         &#39;&#39;&#39;
         Parameters:
-            dependentVar (string): name of the dependent variable
-            independentVars (list of string): names of the independent variables
+            dependentVarName (string): name of the dependent variable
+            independentVarsNames (list of string): names of the independent variables
             indices (list of symbols): symbols for the indices of the independent variables
             timeIndex (symbol): symbolic variable of the time index
 
         Examples:
-            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;u&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#39;u&#39;, independentVarsNames=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
         &#39;&#39;&#39;
 
-        assert isinstance(dependentVar,
-                          str), &#39;DifferentialEquation() parameter dependentVar={} not of &lt;class &#34;str&#34;&gt;&#39;.format(
-            dependentVar)
-        assert isinstance(independentVars,
-                          list), &#39;independentVars() parameter independentVars={} not of &lt;class &#34;list&#34;&gt;&#39;.format(
-            independentVars)
+        assert isinstance(dependentVarName,
+                          str), &#39;DifferentialEquation() parameter dependentVarName={} not of &lt;class &#34;str&#34;&gt;&#39;.format(
+            dependentVarName)
+        assert isinstance(independentVarsNames,
+                          list), &#39;independentVarsNames() parameter independentVarsNames={} not of &lt;class &#34;list&#34;&gt;&#39;.format(
+            independentVarsNames)
         assert isinstance(indices, list), &#39;indices() parameter indices={} not of &lt;class &#34;list&#34;&gt;&#39;.format(indices)
         assert isinstance(timeIndex,
                           symbol.Symbol), &#39;timeIndex() parameter timeIndex={} not of &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
             timeIndex)
-        for indepVar in independentVars:
-            assert isinstance(indepVar, str), &#39;independentVars members are not of &lt;class &#34;str&#34;&gt;&#39;.format(independentVars)
+        for indepVar in independentVarsNames:
+            assert isinstance(indepVar, str), &#39;independentVarsNames members are not of &lt;class &#34;str&#34;&gt;&#39;.format(independentVarsNames)
         for index in indices:
             assert isinstance(index,
                               symbol.Symbol), &#39;indices members are not of &lt;class &#34;sympy.core.symbol.Symbol&#34;&gt;&#39;.format(
                 indices)
 
-        if len(independentVars) &gt; 3:
+        if len(independentVarsNames) &gt; 3:
             raise Exception(&#39;No more than three independent variable is allowed!&#39;)
         else:
-            self.__independentVars = independentVars
-            self.__dependentVar_name = dependentVar
+            self.__independentVars = independentVarsNames
+            self.__dependentVar_name = dependentVarName
 
             self.__indices = indices
             self.__timeIndex = timeIndex
@@ -823,14 +823,14 @@ class DifferentialEquation:
             the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme
 
             &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
-            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;u&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#39;u&#39;, independentVarsNames=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
             &gt;&gt;&gt; advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
             &gt;&gt;&gt; DE.set_rhs(advection)
             &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
 
             another example where we change the name of the dependent variable from &#39;u&#39; to &#39;f&#39;
             &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
-            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;f&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#39;f&#39;, independentVarsNames=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
             &gt;&gt;&gt; advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
             &gt;&gt;&gt; DE.set_rhs(advection)
             &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
@@ -892,13 +892,13 @@ class DifferentialEquation:
         coefs = list(M.inv() * b)
         return {&#39;points&#39;: points, &#39;coefs&#39;: coefs}
 
-    def expr(self, order, direction, time, stencil):
+    def expr(self, order, directionName, time, stencil):
         &#39;&#39;&#39;
-        Generates an expression based on the stencil, the direction,  order of the derivative, and the time at which the expression is evaluated.
+        Generates an expression based on the stencil, the directionName,  order of the derivative, and the time at which the expression is evaluated.
 
         Parameters:
             order (int): order of the derivative
-            direction (string): the name of the independent variable that indicate the direction of the derivative
+            directionName (string): the name of the independent variable that indicate the directionName of the derivative
             time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
             stencil (list of int): N points used for the stencil gen function
 
@@ -906,12 +906,12 @@ class DifferentialEquation:
             symbolic expression
 
         Examples:
-             &gt;&gt;&gt; &lt;DE&gt;.expr(order=1, direction=&#39;x&#39;, time=n, stencil=[-1,0])
+             &gt;&gt;&gt; &lt;DE&gt;.expr(order=1, directionName=&#39;x&#39;, time=n, stencil=[-1,0])
         &#39;&#39;&#39;
 
-        assert isinstance(direction, str), &#39;exp() parameter direcction={} not of &lt;class &#34;str&#34;&gt;&#39;.format(direction)
-        assert direction in self.__independentVars, &#39;direcction={} not an independent variable. indepVar={}&#39;.format(
-            direction, self.__independentVars)
+        assert isinstance(directionName, str), &#39;exp() parameter direcction={} not of &lt;class &#34;str&#34;&gt;&#39;.format(directionName)
+        assert directionName in self.__independentVars, &#39;direcction={} not an independent variable. indepVar={}&#39;.format(
+            directionName, self.__independentVars)
         assert isinstance(time, add.Add) \
                or isinstance(time,symbol.Symbol), \
                &#39;expr() parameter time={} not of &lt;class &#34;sympy.core.add.Add&#34;&gt;,&#39; \
@@ -929,12 +929,12 @@ class DifferentialEquation:
 
             kwargs = {}
             for var in self.__independentVars:
-                if var == direction:
-                    kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
+                if var == directionName:
+                    kwargs[var] = self.vars[directionName][&#39;index&#39;] + pt
                 else:
                     kwargs[var] = self.vars[var][&#39;index&#39;]
             expression += coef * self.dependent_var_func(time=time, **kwargs) / (
-                    self.vars[direction][&#39;variation&#39;] ** order)
+                    self.vars[directionName][&#39;variation&#39;] ** order)
         return ratsimp(expression)
 
     def __printer(foo):
@@ -1130,7 +1130,7 @@ class DifferentialEquation:
     @__printer
     def amp_factor_exponent(self):
         &#39;&#39;&#39;
-        Creats the latex representation of the amplification factor exponent \alpha
+        Creats the latex representation of the amplification factor exponent alpha
 
         Returns:
             latex (display): Latex formatted representation of the amplification factor exponent as &#39; lhs = rhs &#39; in jupyter or console
@@ -1191,12 +1191,12 @@ class DifferentialEquation:
             expression (symbolic expression): linear combination of expression generated from &lt;DE\&gt;.expr(...) or &lt;DE\&gt;.&lt;dependentVar\&gt;(...)
 
         Examples:
-            &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
+            &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#34;u&#34;,independentVarsNames =[&#34;x&#34;])
             &gt;&gt;&gt; a = symbols(&#39;a&#39;)
 
             using DE.expr(...)
 
-            &gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction=&#34;x&#34;,time=n,stencil=[-1, 0])
+            &gt;&gt;&gt; advectionTerm = DE.expr(order=1,directionName=&#34;x&#34;,time=n,stencil=[-1, 0])
             &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
 
             or using  DE.&lt;dependentVar\&gt;(...)
@@ -1403,7 +1403,7 @@ def amp_factor(self):
 <span>def <span class="ident">amp_factor_exponent</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creats the latex representation of the amplification factor exponent lpha</p>
+<section class="desc"><p>Creats the latex representation of the amplification factor exponent alpha</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>latex</code></strong> :&ensp;<code>display</code></dt>
@@ -1416,7 +1416,7 @@ def amp_factor(self):
 <pre><code class="python">@__printer
 def amp_factor_exponent(self):
     &#39;&#39;&#39;
-    Creats the latex representation of the amplification factor exponent \alpha
+    Creats the latex representation of the amplification factor exponent alpha
 
     Returns:
         latex (display): Latex formatted representation of the amplification factor exponent as &#39; lhs = rhs &#39; in jupyter or console
@@ -1450,14 +1450,14 @@ def amp_factor_exponent(self):
 </code></pre>
 <p>the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme</p>
 <pre><code>&gt;&gt;&gt; i, j, n, a = symbols("i j n a")
-&gt;&gt;&gt; DE = DifferentialEquation(dependentVar='u', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
+&gt;&gt;&gt; DE = DifferentialEquation(dependentVarName='u', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
 &gt;&gt;&gt; advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
 &gt;&gt;&gt; DE.set_rhs(advection)
 &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
 </code></pre>
 <p>another example where we change the name of the dependent variable from 'u' to 'f'</p>
 <pre><code>&gt;&gt;&gt; i, j, n, a = symbols("i j n a")
-&gt;&gt;&gt; DE = DifferentialEquation(dependentVar='f', independentVars=['x', 'y'], indices=[i, j], timeIndex=n)
+&gt;&gt;&gt; DE = DifferentialEquation(dependentVarName='f', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
 &gt;&gt;&gt; advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
 &gt;&gt;&gt; DE.set_rhs(advection)
 &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
@@ -1484,14 +1484,14 @@ def amp_factor_exponent(self):
         the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme
 
         &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
-        &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;u&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+        &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#39;u&#39;, independentVarsNames=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
         &gt;&gt;&gt; advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
         &gt;&gt;&gt; DE.set_rhs(advection)
         &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
 
         another example where we change the name of the dependent variable from &#39;u&#39; to &#39;f&#39;
         &gt;&gt;&gt; i, j, n, a = symbols(&#34;i j n a&#34;)
-        &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#39;f&#39;, independentVars=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
+        &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#39;f&#39;, independentVarsNames=[&#39;x&#39;, &#39;y&#39;], indices=[i, j], timeIndex=n)
         &gt;&gt;&gt; advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
         &gt;&gt;&gt; DE.set_rhs(advection)
         &gt;&gt;&gt; pretty_print(DE.modified_equation(nterms=2))
@@ -1525,17 +1525,17 @@ def amp_factor_exponent(self):
 </details>
 </dd>
 <dt id="pymodpde.DifferentialEquation.expr"><code class="name flex">
-<span>def <span class="ident">expr</span></span>(<span>self, order, direction, time, stencil)</span>
+<span>def <span class="ident">expr</span></span>(<span>self, order, directionName, time, stencil)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Generates an expression based on the stencil, the direction,
+<section class="desc"><p>Generates an expression based on the stencil, the directionName,
 order of the derivative, and the time at which the expression is evaluated.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>order</code></strong> :&ensp;<code>int</code></dt>
 <dd>order of the derivative</dd>
-<dt><strong><code>direction</code></strong> :&ensp;<code>string</code></dt>
-<dd>the name of the independent variable that indicate the direction of the derivative</dd>
+<dt><strong><code>directionName</code></strong> :&ensp;<code>string</code></dt>
+<dd>the name of the independent variable that indicate the directionName of the derivative</dd>
 <dt><strong><code>time</code></strong> :&ensp;<code>symbolic</code> <code>expression</code></dt>
 <dd>time at which to evaluate the expression. ex: n+1 or n</dd>
 <dt><strong><code>stencil</code></strong> :&ensp;<code>list</code> of <code>int</code></dt>
@@ -1547,19 +1547,19 @@ order of the derivative, and the time at which the expression is evaluated.</p>
 <dd>&nbsp;</dd>
 </dl>
 <h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; &lt;DE&gt;.expr(order=1, direction='x', time=n, stencil=[-1,0])
+<pre><code>&gt;&gt;&gt; &lt;DE&gt;.expr(order=1, directionName='x', time=n, stencil=[-1,0])
 </code></pre></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def expr(self, order, direction, time, stencil):
+<pre><code class="python">def expr(self, order, directionName, time, stencil):
     &#39;&#39;&#39;
-    Generates an expression based on the stencil, the direction,  order of the derivative, and the time at which the expression is evaluated.
+    Generates an expression based on the stencil, the directionName,  order of the derivative, and the time at which the expression is evaluated.
 
     Parameters:
         order (int): order of the derivative
-        direction (string): the name of the independent variable that indicate the direction of the derivative
+        directionName (string): the name of the independent variable that indicate the directionName of the derivative
         time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
         stencil (list of int): N points used for the stencil gen function
 
@@ -1567,12 +1567,12 @@ order of the derivative, and the time at which the expression is evaluated.</p>
         symbolic expression
 
     Examples:
-         &gt;&gt;&gt; &lt;DE&gt;.expr(order=1, direction=&#39;x&#39;, time=n, stencil=[-1,0])
+         &gt;&gt;&gt; &lt;DE&gt;.expr(order=1, directionName=&#39;x&#39;, time=n, stencil=[-1,0])
     &#39;&#39;&#39;
 
-    assert isinstance(direction, str), &#39;exp() parameter direcction={} not of &lt;class &#34;str&#34;&gt;&#39;.format(direction)
-    assert direction in self.__independentVars, &#39;direcction={} not an independent variable. indepVar={}&#39;.format(
-        direction, self.__independentVars)
+    assert isinstance(directionName, str), &#39;exp() parameter direcction={} not of &lt;class &#34;str&#34;&gt;&#39;.format(directionName)
+    assert directionName in self.__independentVars, &#39;direcction={} not an independent variable. indepVar={}&#39;.format(
+        directionName, self.__independentVars)
     assert isinstance(time, add.Add) \
            or isinstance(time,symbol.Symbol), \
            &#39;expr() parameter time={} not of &lt;class &#34;sympy.core.add.Add&#34;&gt;,&#39; \
@@ -1590,12 +1590,12 @@ order of the derivative, and the time at which the expression is evaluated.</p>
 
         kwargs = {}
         for var in self.__independentVars:
-            if var == direction:
-                kwargs[var] = self.vars[direction][&#39;index&#39;] + pt
+            if var == directionName:
+                kwargs[var] = self.vars[directionName][&#39;index&#39;] + pt
             else:
                 kwargs[var] = self.vars[var][&#39;index&#39;]
         expression += coef * self.dependent_var_func(time=time, **kwargs) / (
-                self.vars[direction][&#39;variation&#39;] ** order)
+                self.vars[directionName][&#39;variation&#39;] ** order)
     return ratsimp(expression)</code></pre>
 </details>
 </dd>
@@ -1697,11 +1697,11 @@ def modified_equation(self, nterms):
 <dd>linear combination of expression generated from &lt;DE>.expr(&hellip;) or &lt;DE>.&lt;dependentVar>(&hellip;)</dd>
 </dl>
 <h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; DE = DifferentialEquation(dependentVar="u",independentVars =["x"])
+<pre><code>&gt;&gt;&gt; DE = DifferentialEquation(dependentVarName="u",independentVarsNames =["x"])
 &gt;&gt;&gt; a = symbols('a')
 </code></pre>
 <p>using DE.expr(&hellip;)</p>
-<pre><code>&gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction="x",time=n,stencil=[-1, 0])
+<pre><code>&gt;&gt;&gt; advectionTerm = DE.expr(order=1,directionName="x",time=n,stencil=[-1, 0])
 &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
 </code></pre>
 <p>or using
@@ -1720,12 +1720,12 @@ DE.&lt;dependentVar>(&hellip;)</p>
         expression (symbolic expression): linear combination of expression generated from &lt;DE\&gt;.expr(...) or &lt;DE\&gt;.&lt;dependentVar\&gt;(...)
 
     Examples:
-        &gt;&gt;&gt; DE = DifferentialEquation(dependentVar=&#34;u&#34;,independentVars =[&#34;x&#34;])
+        &gt;&gt;&gt; DE = DifferentialEquation(dependentVarName=&#34;u&#34;,independentVarsNames =[&#34;x&#34;])
         &gt;&gt;&gt; a = symbols(&#39;a&#39;)
 
         using DE.expr(...)
 
-        &gt;&gt;&gt; advectionTerm = DE.expr(order=1,direction=&#34;x&#34;,time=n,stencil=[-1, 0])
+        &gt;&gt;&gt; advectionTerm = DE.expr(order=1,directionName=&#34;x&#34;,time=n,stencil=[-1, 0])
         &gt;&gt;&gt; DE.set_rhs(expression= - a * advectionTerm)
 
         or using  DE.&lt;dependentVar\&gt;(...)
