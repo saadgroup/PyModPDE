@@ -98,7 +98,11 @@ class DifferentialEquation:
         Returns:
              the symbolic modified equation
         '''
-        return self.__ME
+        if self.__ME == None:
+            raise Exception(
+                'the modified equation is not generated yet. try calling the modified_equation function first.')
+        else:
+            return self.__ME
 
     @property
     def latexModifiedEquation(self):
@@ -106,7 +110,11 @@ class DifferentialEquation:
         Returns:
              the Latex string of the modified equation
         '''
-        return self.__latex()
+        if self.__ME == None:
+            raise Exception(
+                'the modified equation is not generated yet. try calling the modified_equation function first.')
+        else:
+            return self.__latex()
 
     @property
     def latexAmplificationFactor(self):
@@ -114,6 +122,8 @@ class DifferentialEquation:
         Returns:
              the Latex string of the amplification factor
         '''
+        if self.__amp_factor == None:
+            raise Exception('the amplification factor is not generated yet. try calling the modified_equation or amp_factor functions first.')
         return self.__latex_amp_factor
 
     @property
@@ -122,7 +132,10 @@ class DifferentialEquation:
         Returns:
              the symbolic amplification factor
         '''
-        return self.__amp_factor
+        if self.__amp_factor == None:
+            raise Exception('the amplification factor is not generated yet. try calling the modified_equation or amp_factor functions first.')
+        else:
+            return self.__amp_factor
 
     @property
     def symbolicAmplificationFactorExponent(self):
@@ -130,7 +143,10 @@ class DifferentialEquation:
         Returns:
              the symbolic amplification factor exponent
         '''
-        return self.__amp_factor_exponent
+        if self.__amp_factor_exponent == None:
+            raise Exception('the amplification factor is not generated yet. try calling the modified_equation or amp_factor functions first.')
+        else:
+            return self.__amp_factor_exponent
 
     @property
     def latexAmplificationFactorExponent(self):
@@ -138,7 +154,10 @@ class DifferentialEquation:
         Returns:
              the Latex string of the amplification factor exponent
         '''
-        return self.__latex_amp_factor_exponent
+        if self.__latex_amp_factor_exponent == None:
+            raise Exception('the amplification factor is not generated yet. try calling the modified_equation or amp_factor functions first.')
+        else:
+            return self.__latex_amp_factor_exponent
 
     @property
     def independentVars(self):
