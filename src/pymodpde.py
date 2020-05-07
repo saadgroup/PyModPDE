@@ -74,7 +74,7 @@ class DifferentialEquation:
             self.indepVarsSym.append(self.t['sym'])
             self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
 
-            self.__latex_ME = {'lhs': '', 'rhs': {}}
+            self.__latex_ME_coefs = {'lhs': '', 'rhs': {}}
 
             self.indicies = {}
             for var in self.__independentVars:
@@ -90,10 +90,15 @@ class DifferentialEquation:
             self.__amp_factor = None
             self.__amp_factor_exponent = None
             self.__latex_amp_factor_exponent = None
+            self.__latex_ME = None
 
+            self.__is_jupyter = None
+            try:
+                self.__is_jupyter = 'IPKernelApp' in get_ipython().config
+            except:
+                self.__is_jupyter = False
 
-    @property
-    def symbolicModifiedEquation(self):
+    def get_sym_modified_equation(self):
         '''
         Returns:
              the symbolic modified equation
@@ -104,8 +109,8 @@ class DifferentialEquation:
         else:
             return self.__ME
 
-    @property
-    def latexModifiedEquation(self):
+
+    def get_latex_modified_equation(self):
         '''
         Returns:
              the Latex string of the modified equation
@@ -116,8 +121,8 @@ class DifferentialEquation:
         else:
             return self.__latex()
 
-    @property
-    def latexAmplificationFactor(self):
+
+    def get_latex_amp_factor(self):
         '''
         Returns:
              the Latex string of the amplification factor
@@ -126,8 +131,8 @@ class DifferentialEquation:
             raise Exception('the amplification factor is not generated yet. try calling the modified_equation or amp_factor functions first.')
         return self.__latex_amp_factor
 
-    @property
-    def symbolicAmplificationFactor(self):
+
+    def get_sym_amp_factor(self):
         '''
         Returns:
              the symbolic amplification factor
@@ -137,29 +142,41 @@ class DifferentialEquation:
         else:
             return self.__amp_factor
 
-    @property
-    def symbolicAmplificationFactorExponent(self):
+    def __printer(foo):
         '''
-        Returns:
-             the symbolic amplification factor exponent
+        decorator that prints the results based on where they are executed: jupyter or script
         '''
-        if self.__amp_factor_exponent == None:
-            raise Exception('the amplification factor is not generated yet. try calling the modified_equation or amp_factor functions first.')
-        else:
-            return self.__amp_factor_exponent
+        @functools.wraps(foo)
+        def Print(self, *args, **kwargs):
+            if self.__is_jupyter:
+                return display(Math(foo(self, *args, **kwargs)))
+            else:
+                symbolic_form = foo(self, *args, **kwargs)
+                subs_dict = {}
+                for indep in self.indepVarsSym:
+                    subs_dict['\Delta{}'.format('{'+str(indep)+'}')] = var('d{}'.format(str(indep)))
+                return pprint(symbolic_form.subs(subs_dict))
+        return Print
 
-    @property
-    def latexAmplificationFactorExponent(self):
-        '''
-        Returns:
-             the Latex string of the amplification factor exponent
-        '''
-        if self.__latex_amp_factor_exponent == None:
-            raise Exception('the amplification factor is not generated yet. try calling the modified_equation or amp_factor functions first.')
+    @__printer
+    def display_modified_equation(self):
+        if self.__ME == None:
+            raise Exception('the amplification factor is not generated yet. Try calling the modified_equation or amp_factor functions first.')
+        if self.__is_jupyter:
+            return self.__latex_ME
         else:
-            return self.__latex_amp_factor_exponent
+            return self.__ME
 
-    @property
+    @__printer
+    def display_amp_factor(self):
+        if self.__amp_factor == None:
+            raise Exception('the modified equation is not generated yet. Try calling the modified_equation function first.')
+        if self.__is_jupyter:
+            return latex(self.__amp_factor)
+        else:
+            return self.__amp_factor
+
+
     def independentVars(self):
         '''
         Returns:
@@ -326,30 +343,7 @@ class DifferentialEquation:
                     self.vars[directionName]['variation'] ** order)
         return ratsimp(expression)
 
-    def __printer(foo):
-        '''
-        decorator that prints the results based on where they are executed: jupyter or script
-        '''
-        @functools.wraps(foo)
-        def Print(self, *args, **kwargs):
-            try:
-                if 'IPKernelApp' in get_ipython().config:  # pragma: no cover
-                    if foo.__name__ == 'modified_equation':
-                        foo(self, *args, **kwargs)
-                        return display(Math(self.__latex()))
-                    elif foo.__name__ in ['amp_factor','amp_factor_exponent'] :
-                        return display(Math(latex(foo(self, *args, **kwargs))))
-            except:
-                symbolic_form = foo(self, *args, **kwargs)
-                subs_dict = {}
-                for indep in self.indepVarsSym:
-                    subs_dict['\Delta{}'.format('{'+str(indep)+'}')] = var('d{}'.format(str(indep)))
-                return pprint(symbolic_form.subs(subs_dict))
 
-
-        return Print
-
-    @__printer
     def modified_equation(self, nterms):
         '''
         Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
@@ -359,15 +353,11 @@ class DifferentialEquation:
         Parameters:
             nterms (int): Number of in the modified equation. nterms is greater than zero.
 
-        Returns:
-             latex (display): Latex formatted representation of the modified equation as ' lhs = rhs ' in jupyter or console
-
         Examples:
             >>> <DE>.modified_equation(nterms=2)
         '''
-
         assert nterms > 0, 'modified_equation() member nterms={} has to be greater than zero.'.format(nterms)
-
+        self.amp_factor()
         q = self.__solve_amp_exponent()
 
         order = self.__infer_order(q) # infering maximum order from the amplification factor.
@@ -404,12 +394,12 @@ class DifferentialEquation:
 
         me_lhs = Derivative(self.dependentVar, self.t['sym'], 1)
         me_rhs = 0
-        self.__latex_ME['lhs'] = latex(me_lhs)
+        self.__latex_ME_coefs['lhs'] = latex(me_lhs)
         for key in coefs.keys():
             me_rhs += coefs[key] * derivs[key]
-            self.__latex_ME['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
+            self.__latex_ME_coefs['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
         self.__ME = Eq(me_lhs, me_rhs)
-        return self.__ME
+        self.__latex_ME = self.__latex()
 
     def __infer_order(self, amp_factor):
         '''
@@ -484,7 +474,7 @@ class DifferentialEquation:
         Returns:
              (expression): symbolic expression of the rhs of the amplification factor
         '''
-        e_alpha_dt = self.__solve_amp_factor()
+        e_alpha_dt = self.__amp_factor.rhs
         q = 1/self.t['variation'] * log(e_alpha_dt)  # alpha
         self.__amp_factor_exponent = q
         return q
@@ -502,33 +492,14 @@ class DifferentialEquation:
         e_alpha_dt = simplify(solve(eq, A)[0])
         return e_alpha_dt
 
-    @__printer
     def amp_factor(self):
         '''
-        Creats the latex representation of the amplification factor
-
-        Returns:
-            latex (display): Latex formatted representation of the amplification factor as ' lhs = rhs ' in jupyter or console
+        Creates the latex representation of the amplification factor
         '''
         lhs = exp(symbols('alpha')*self.t['variation'])
         rhs = self.__solve_amp_factor()
         self.__amp_factor = Eq(lhs,rhs)
         self.__latex_amp_factor = latex(self.__amp_factor)
-        return self.__amp_factor
-
-    @__printer
-    def amp_factor_exponent(self):
-        '''
-        Creats the latex representation of the amplification factor exponent alpha
-
-        Returns:
-            latex (display): Latex formatted representation of the amplification factor exponent as ' lhs = rhs ' in jupyter or console
-        '''
-        lhs = symbols('alpha')
-        rhs = self.__solve_amp_exponent()
-        self.__amp_factor_exponent = Eq(lhs, rhs)
-        self.__latex_amp_factor_exponent = latex(self.__amp_factor_exponent)
-        return self.__amp_factor_exponent
 
     def __latex(self):
         '''
@@ -537,35 +508,32 @@ class DifferentialEquation:
 
         '''
         strings = {}
-        for key in self.__latex_ME['rhs'].keys():
+        for key in self.__latex_ME_coefs['rhs'].keys():
             num = sum([int(x) for x in [char for char in key]])
-            string = self.__latex_ME['rhs'][key]
-            firstDelPos = string.rfind("{")
-            secondDelPos = string.rfind("}")
-            string = string.replace(string[firstDelPos:secondDelPos + 1], "")
-            var_string = " " + string[-1] + " "
-            string = string[:-1]
-            rPartialPos = string.rfind("partial")
-            varNewPos = string[:rPartialPos].rfind("}{")
-            string = string[:varNewPos] + var_string + string[varNewPos:]
+            string = self.__latex_ME_coefs['rhs'][key]
+            string = self.__latex_derivative(string)
             if num in list(strings.keys()):
                 strings[num] += ' ' + string if string[0] == '-' else ' + ' + string
             else:
                 strings[num] = ' ' + string if string[0] == '-' else ' + ' + string
-        lhs_string = self.__latex_ME['lhs']
-        firstDelPos = lhs_string.rfind("{")
-        secondDelPos = lhs_string.rfind("}")
-        lhs_string = lhs_string.replace(lhs_string[firstDelPos:secondDelPos + 1], "")
-        var_string = " " + lhs_string[-1] + " "
-        lhs_string = lhs_string[:-1]
-        rPartialPos = lhs_string.rfind("partial")
-        varNewPos = lhs_string[:rPartialPos].rfind("}")
-        lhs_string = lhs_string[:varNewPos] + var_string + lhs_string[varNewPos:]
+        lhs_string = self.__latex_ME_coefs['lhs']
+        lhs_string= self.__latex_derivative(lhs_string)
 
         latex_str = lhs_string + ' = '
         for i in sorted(strings.keys()):
             latex_str += strings[i]
         return latex_str
+
+    def __latex_derivative(self,string):
+        firstDelPos = string.rfind("{")
+        secondDelPos = string.rfind("}")
+        string = string.replace(string[firstDelPos:secondDelPos + 1], "")
+        var_string = " " + string[-1] + " "
+        string = string[:-1]
+        rPartialPos = string.rfind("partial")
+        varNewPos = string[:rPartialPos].rfind("}{")
+        string = string[:varNewPos] + var_string + string[varNewPos:]
+        return string
 
     def __set_lhs(self):
         '''
