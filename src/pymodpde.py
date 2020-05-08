@@ -160,6 +160,10 @@ class DifferentialEquation:
 
     @__printer
     def display_modified_equation(self):
+        '''
+        Display the modified equation in a latex rendered form in jupyter cell and render the symbolic equation in console or
+        python script.
+        '''
         if self.__ME == None:
             raise Exception('the amplification factor is not generated yet. Try calling the generate_modified_equation or generate_amp_factor functions first.')
         if self.__is_jupyter:
@@ -169,6 +173,10 @@ class DifferentialEquation:
 
     @__printer
     def display_amp_factor(self):
+        '''
+           Display the amplification factor in a latex rendered form in jupyter cell and render the symbolic equation in console or
+           python script.
+       '''
         if self.__amp_factor == None:
             raise Exception('the modified equation is not generated yet. Try calling the generate_modified_equation function first.')
         if self.__is_jupyter:
