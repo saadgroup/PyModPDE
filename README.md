@@ -37,9 +37,9 @@ set_rhs(expression)
 ```
 where `expression` is a symbolic expression of the rhs constructed using the previously described methods.
 
-Now the member function, `modified_equation(...)`, can be used to generate the modified equation up to certain number of terms that the user specify, and return the modified equation in latex form. The signature of `modified_equation` is as follow
+Now the member function, `generate_modified_equation(...)`, can be used to generate the modified equation up to certain number of terms that the user specify, and return the modified equation in latex form. The signature of `generate_modified_equation` is as follow
 ```Python
-modified_equation(nterms)
+generate_modified_equation(nterms)
 ```
 where `nterms` is a positive integer that indicates the total number of terms in the modified equation.
 
@@ -63,10 +63,10 @@ advectionTerm1 = DE.expr(order=1,  directionName='x', time=n, stencil=[-1, 0])
 DE.set_rhs(- a * advectionTerm1 )
 
 # displaying the amplification factor
-DE.amp_factor()
+DE.generate_amp_factor()
 
 # computing and displaying the modified equation up to two terms
-DE.modified_equation(nterms=2)
+DE.generate_modified_equation(nterms=2)
 
 ```
 
@@ -88,10 +88,10 @@ advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
 DE.set_rhs(- a * advectionTerm )
 
 # displaying the amplification factor
-DE.amp_factor()
+DE.generate_amp_factor()
 
 # computing and displaying the modified equation up to two terms
-DE.modified_equation(nterms=2)
+DE.generate_modified_equation(nterms=2)
 ```
 
 ---
