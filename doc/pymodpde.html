@@ -127,7 +127,7 @@ class DifferentialEquation:
             except:
                 self.__is_jupyter = False
 
-    def get_sym_modified_equation(self):
+    def symbolic_modified_equation(self):
         &#39;&#39;&#39;
         Returns:
              the symbolic modified equation
@@ -139,7 +139,7 @@ class DifferentialEquation:
             return self.__ME
 
 
-    def get_latex_modified_equation(self):
+    def latex_modified_equation(self):
         &#39;&#39;&#39;
         Returns:
              the Latex string of the modified equation
@@ -151,7 +151,7 @@ class DifferentialEquation:
             return self.__latex()
 
 
-    def get_latex_amp_factor(self):
+    def latex_amp_factor(self):
         &#39;&#39;&#39;
         Returns:
              the Latex string of the amplification factor
@@ -161,7 +161,7 @@ class DifferentialEquation:
         return self.__latex_amp_factor
 
 
-    def get_sym_amp_factor(self):
+    def symbolic_amp_factor(self):
         &#39;&#39;&#39;
         Returns:
              the symbolic amplification factor
@@ -715,7 +715,7 @@ class DifferentialEquation:
             except:
                 self.__is_jupyter = False
 
-    def get_sym_modified_equation(self):
+    def symbolic_modified_equation(self):
         &#39;&#39;&#39;
         Returns:
              the symbolic modified equation
@@ -727,7 +727,7 @@ class DifferentialEquation:
             return self.__ME
 
 
-    def get_latex_modified_equation(self):
+    def latex_modified_equation(self):
         &#39;&#39;&#39;
         Returns:
              the Latex string of the modified equation
@@ -739,7 +739,7 @@ class DifferentialEquation:
             return self.__latex()
 
 
-    def get_latex_amp_factor(self):
+    def latex_amp_factor(self):
         &#39;&#39;&#39;
         Returns:
              the Latex string of the amplification factor
@@ -749,7 +749,7 @@ class DifferentialEquation:
         return self.__latex_amp_factor
 
 
-    def get_sym_amp_factor(self):
+    def symbolic_amp_factor(self):
         &#39;&#39;&#39;
         Returns:
              the symbolic amplification factor
@@ -1506,103 +1506,6 @@ a_ijk * u_{ijk}.</p>
     self.__latex_ME = self.__latex()</code></pre>
 </details>
 </dd>
-<dt id="pymodpde.DifferentialEquation.get_latex_amp_factor"><code class="name flex">
-<span>def <span class="ident">get_latex_amp_factor</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><h2 id="returns">Returns</h2>
-<dl>
-<dt><code>the</code> <code>Latex</code> <code>string</code> of <code>the</code> <code>amplification</code> <code>factor</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_latex_amp_factor(self):
-    &#39;&#39;&#39;
-    Returns:
-         the Latex string of the amplification factor
-    &#39;&#39;&#39;
-    if self.__amp_factor == None:
-        raise Exception(&#39;the amplification factor is not generated yet. try calling the generate_modified_equation or generate_amp_factor functions first.&#39;)
-    return self.__latex_amp_factor</code></pre>
-</details>
-</dd>
-<dt id="pymodpde.DifferentialEquation.get_latex_modified_equation"><code class="name flex">
-<span>def <span class="ident">get_latex_modified_equation</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><h2 id="returns">Returns</h2>
-<dl>
-<dt><code>the</code> <code>Latex</code> <code>string</code> of <code>the</code> <code>modified</code> <code>equation</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_latex_modified_equation(self):
-    &#39;&#39;&#39;
-    Returns:
-         the Latex string of the modified equation
-    &#39;&#39;&#39;
-    if self.__ME == None:
-        raise Exception(
-            &#39;the modified equation is not generated yet. try calling the generate_modified_equation function first.&#39;)
-    else:
-        return self.__latex()</code></pre>
-</details>
-</dd>
-<dt id="pymodpde.DifferentialEquation.get_sym_amp_factor"><code class="name flex">
-<span>def <span class="ident">get_sym_amp_factor</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><h2 id="returns">Returns</h2>
-<dl>
-<dt><code>the</code> <code>symbolic</code> <code>amplification</code> <code>factor</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_sym_amp_factor(self):
-    &#39;&#39;&#39;
-    Returns:
-         the symbolic amplification factor
-    &#39;&#39;&#39;
-    if self.__amp_factor == None:
-        raise Exception(&#39;the amplification factor is not generated yet. try calling the generate_modified_equation or generate_amp_factor functions first.&#39;)
-    else:
-        return self.__amp_factor</code></pre>
-</details>
-</dd>
-<dt id="pymodpde.DifferentialEquation.get_sym_modified_equation"><code class="name flex">
-<span>def <span class="ident">get_sym_modified_equation</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><h2 id="returns">Returns</h2>
-<dl>
-<dt><code>the</code> <code>symbolic</code> <code>modified</code> <code>equation</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_sym_modified_equation(self):
-    &#39;&#39;&#39;
-    Returns:
-         the symbolic modified equation
-    &#39;&#39;&#39;
-    if self.__ME == None:
-        raise Exception(
-            &#39;the modified equation is not generated yet. try calling the generate_modified_equation function first.&#39;)
-    else:
-        return self.__ME</code></pre>
-</details>
-</dd>
 <dt id="pymodpde.DifferentialEquation.independentVars"><code class="name flex">
 <span>def <span class="ident">independentVars</span></span>(<span>self)</span>
 </code></dt>
@@ -1622,6 +1525,54 @@ a_ijk * u_{ijk}.</p>
         self.__independentVars (list): list of independent variables names
     &#39;&#39;&#39;
     return self.__independentVars</code></pre>
+</details>
+</dd>
+<dt id="pymodpde.DifferentialEquation.latex_amp_factor"><code class="name flex">
+<span>def <span class="ident">latex_amp_factor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="returns">Returns</h2>
+<dl>
+<dt><code>the</code> <code>Latex</code> <code>string</code> of <code>the</code> <code>amplification</code> <code>factor</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def latex_amp_factor(self):
+    &#39;&#39;&#39;
+    Returns:
+         the Latex string of the amplification factor
+    &#39;&#39;&#39;
+    if self.__amp_factor == None:
+        raise Exception(&#39;the amplification factor is not generated yet. try calling the generate_modified_equation or generate_amp_factor functions first.&#39;)
+    return self.__latex_amp_factor</code></pre>
+</details>
+</dd>
+<dt id="pymodpde.DifferentialEquation.latex_modified_equation"><code class="name flex">
+<span>def <span class="ident">latex_modified_equation</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="returns">Returns</h2>
+<dl>
+<dt><code>the</code> <code>Latex</code> <code>string</code> of <code>the</code> <code>modified</code> <code>equation</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def latex_modified_equation(self):
+    &#39;&#39;&#39;
+    Returns:
+         the Latex string of the modified equation
+    &#39;&#39;&#39;
+    if self.__ME == None:
+        raise Exception(
+            &#39;the modified equation is not generated yet. try calling the generate_modified_equation function first.&#39;)
+    else:
+        return self.__latex()</code></pre>
 </details>
 </dd>
 <dt id="pymodpde.DifferentialEquation.set_rhs"><code class="name flex">
@@ -1679,6 +1630,55 @@ DE.&lt;dependentVar>(&hellip;)</p>
     self.rhs = expression</code></pre>
 </details>
 </dd>
+<dt id="pymodpde.DifferentialEquation.symbolic_amp_factor"><code class="name flex">
+<span>def <span class="ident">symbolic_amp_factor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="returns">Returns</h2>
+<dl>
+<dt><code>the</code> <code>symbolic</code> <code>amplification</code> <code>factor</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def symbolic_amp_factor(self):
+    &#39;&#39;&#39;
+    Returns:
+         the symbolic amplification factor
+    &#39;&#39;&#39;
+    if self.__amp_factor == None:
+        raise Exception(&#39;the amplification factor is not generated yet. try calling the generate_modified_equation or generate_amp_factor functions first.&#39;)
+    else:
+        return self.__amp_factor</code></pre>
+</details>
+</dd>
+<dt id="pymodpde.DifferentialEquation.symbolic_modified_equation"><code class="name flex">
+<span>def <span class="ident">symbolic_modified_equation</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="returns">Returns</h2>
+<dl>
+<dt><code>the</code> <code>symbolic</code> <code>modified</code> <code>equation</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def symbolic_modified_equation(self):
+    &#39;&#39;&#39;
+    Returns:
+         the symbolic modified equation
+    &#39;&#39;&#39;
+    if self.__ME == None:
+        raise Exception(
+            &#39;the modified equation is not generated yet. try calling the generate_modified_equation function first.&#39;)
+    else:
+        return self.__ME</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -1701,12 +1701,12 @@ DE.&lt;dependentVar>(&hellip;)</p>
 <li><code><a title="pymodpde.DifferentialEquation.expr" href="#pymodpde.DifferentialEquation.expr">expr</a></code></li>
 <li><code><a title="pymodpde.DifferentialEquation.generate_amp_factor" href="#pymodpde.DifferentialEquation.generate_amp_factor">generate_amp_factor</a></code></li>
 <li><code><a title="pymodpde.DifferentialEquation.generate_modified_equation" href="#pymodpde.DifferentialEquation.generate_modified_equation">generate_modified_equation</a></code></li>
-<li><code><a title="pymodpde.DifferentialEquation.get_latex_amp_factor" href="#pymodpde.DifferentialEquation.get_latex_amp_factor">get_latex_amp_factor</a></code></li>
-<li><code><a title="pymodpde.DifferentialEquation.get_latex_modified_equation" href="#pymodpde.DifferentialEquation.get_latex_modified_equation">get_latex_modified_equation</a></code></li>
-<li><code><a title="pymodpde.DifferentialEquation.get_sym_amp_factor" href="#pymodpde.DifferentialEquation.get_sym_amp_factor">get_sym_amp_factor</a></code></li>
-<li><code><a title="pymodpde.DifferentialEquation.get_sym_modified_equation" href="#pymodpde.DifferentialEquation.get_sym_modified_equation">get_sym_modified_equation</a></code></li>
 <li><code><a title="pymodpde.DifferentialEquation.independentVars" href="#pymodpde.DifferentialEquation.independentVars">independentVars</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.latex_amp_factor" href="#pymodpde.DifferentialEquation.latex_amp_factor">latex_amp_factor</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.latex_modified_equation" href="#pymodpde.DifferentialEquation.latex_modified_equation">latex_modified_equation</a></code></li>
 <li><code><a title="pymodpde.DifferentialEquation.set_rhs" href="#pymodpde.DifferentialEquation.set_rhs">set_rhs</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.symbolic_amp_factor" href="#pymodpde.DifferentialEquation.symbolic_amp_factor">symbolic_amp_factor</a></code></li>
+<li><code><a title="pymodpde.DifferentialEquation.symbolic_modified_equation" href="#pymodpde.DifferentialEquation.symbolic_modified_equation">symbolic_modified_equation</a></code></li>
 </ul>
 </li>
 </ul>

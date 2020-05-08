@@ -98,7 +98,7 @@ class DifferentialEquation:
             except:
                 self.__is_jupyter = False
 
-    def get_sym_modified_equation(self):
+    def symbolic_modified_equation(self):
         '''
         Returns:
              the symbolic modified equation
@@ -110,7 +110,7 @@ class DifferentialEquation:
             return self.__ME
 
 
-    def get_latex_modified_equation(self):
+    def latex_modified_equation(self):
         '''
         Returns:
              the Latex string of the modified equation
@@ -122,7 +122,7 @@ class DifferentialEquation:
             return self.__latex()
 
 
-    def get_latex_amp_factor(self):
+    def latex_amp_factor(self):
         '''
         Returns:
              the Latex string of the amplification factor
@@ -132,7 +132,7 @@ class DifferentialEquation:
         return self.__latex_amp_factor
 
 
-    def get_sym_amp_factor(self):
+    def symbolic_amp_factor(self):
         '''
         Returns:
              the symbolic amplification factor
