@@ -105,7 +105,7 @@ class DifferentialEquation:
         '''
         if self.__ME == None:
             raise Exception(
-                'the modified equation is not generated yet. try calling the modified_equation function first.')
+                'the modified equation is not generated yet. try calling the generate_modified_equation function first.')
         else:
             return self.__ME
 
@@ -117,7 +117,7 @@ class DifferentialEquation:
         '''
         if self.__ME == None:
             raise Exception(
-                'the modified equation is not generated yet. try calling the modified_equation function first.')
+                'the modified equation is not generated yet. try calling the generate_modified_equation function first.')
         else:
             return self.__latex()
 
@@ -128,7 +128,7 @@ class DifferentialEquation:
              the Latex string of the amplification factor
         '''
         if self.__amp_factor == None:
-            raise Exception('the amplification factor is not generated yet. try calling the modified_equation or amp_factor functions first.')
+            raise Exception('the amplification factor is not generated yet. try calling the generate_modified_equation or generate_amp_factor functions first.')
         return self.__latex_amp_factor
 
 
@@ -138,7 +138,7 @@ class DifferentialEquation:
              the symbolic amplification factor
         '''
         if self.__amp_factor == None:
-            raise Exception('the amplification factor is not generated yet. try calling the modified_equation or amp_factor functions first.')
+            raise Exception('the amplification factor is not generated yet. try calling the generate_modified_equation or generate_amp_factor functions first.')
         else:
             return self.__amp_factor
 
@@ -161,7 +161,7 @@ class DifferentialEquation:
     @__printer
     def display_modified_equation(self):
         if self.__ME == None:
-            raise Exception('the amplification factor is not generated yet. Try calling the modified_equation or amp_factor functions first.')
+            raise Exception('the amplification factor is not generated yet. Try calling the generate_modified_equation or generate_amp_factor functions first.')
         if self.__is_jupyter:
             return self.__latex_ME
         else:
@@ -170,7 +170,7 @@ class DifferentialEquation:
     @__printer
     def display_amp_factor(self):
         if self.__amp_factor == None:
-            raise Exception('the modified equation is not generated yet. Try calling the modified_equation function first.')
+            raise Exception('the modified equation is not generated yet. Try calling the generate_modified_equation function first.')
         if self.__is_jupyter:
             return latex(self.__amp_factor)
         else:
@@ -232,14 +232,14 @@ class DifferentialEquation:
             >>> DE = DifferentialEquation(dependentVarName='u', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
             >>> advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
             >>> DE.set_rhs(advection)
-            >>> pretty_print(DE.modified_equation(nterms=2))
+            >>> pretty_print(DE.generate_modified_equation(nterms=2))
 
             another example where we change the name of the dependent variable from 'u' to 'f'
             >>> i, j, n, a = symbols("i j n a")
             >>> DE = DifferentialEquation(dependentVarName='f', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
             >>> advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
             >>> DE.set_rhs(advection)
-            >>> pretty_print(DE.modified_equation(nterms=2))
+            >>> pretty_print(DE.generate_modified_equation(nterms=2))
         '''
 
         assert isinstance(time, add.Add) or isinstance(time,
@@ -344,7 +344,7 @@ class DifferentialEquation:
         return ratsimp(expression)
 
 
-    def modified_equation(self, nterms):
+    def generate_modified_equation(self, nterms):
         '''
         Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
         the order of derivatives in the <indep var1\> , <indep var2\>, and <indep var3\> directions, respectively. These are written as
@@ -354,10 +354,10 @@ class DifferentialEquation:
             nterms (int): Number of in the modified equation. nterms is greater than zero.
 
         Examples:
-            >>> <DE>.modified_equation(nterms=2)
+            >>> <DE>.generate_modified_equation(nterms=2)
         '''
-        assert nterms > 0, 'modified_equation() member nterms={} has to be greater than zero.'.format(nterms)
-        self.amp_factor()
+        assert nterms > 0, 'generate_modified_equation() member nterms={} has to be greater than zero.'.format(nterms)
+        self.generate_amp_factor()
         q = self.__solve_amp_exponent()
 
         order = self.__infer_order(q) # infering maximum order from the amplification factor.
@@ -441,7 +441,7 @@ class DifferentialEquation:
                 if arg[0] == self.vars[var]['variation']:
                     maximums[num] = max(maximums[num], abs(arg[1]))
 
-                # print(amp_factor.has(self.vars[var]['variation']**maximums[num]))
+                # print(generate_amp_factor.has(self.vars[var]['variation']**maximums[num]))
 
         # checking for cross derivatives orders.
         ranges = [range(-max, max + 1) for max in maximums]
@@ -458,7 +458,7 @@ class DifferentialEquation:
             if amp_factor.has(var_comb):
                 comb_max = max(comb_max, sum([abs(p[i]) for i in range(len(p))]))
 
-            # print('{}, {}'.format(var_comb,amp_factor.has(var_comb)))
+            # print('{}, {}'.format(var_comb,generate_amp_factor.has(var_comb)))
 
         # choosing the maximum value for order between derivatives and cross derivatives.
         order = max(max(maximums), comb_max)
@@ -492,7 +492,7 @@ class DifferentialEquation:
         e_alpha_dt = simplify(solve(eq, A)[0])
         return e_alpha_dt
 
-    def amp_factor(self):
+    def generate_amp_factor(self):
         '''
         Creates the latex representation of the amplification factor
         '''
