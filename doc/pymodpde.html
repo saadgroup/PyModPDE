@@ -531,7 +531,7 @@ class DifferentialEquation:
 
     def generate_amp_factor(self):
         &#39;&#39;&#39;
-        Creates the latex representation of the amplification factor
+        Computes the amplification factor for the discretized PDE
         &#39;&#39;&#39;
         lhs = exp(symbols(&#39;alpha&#39;)*self.t[&#39;variation&#39;])
         rhs = self.__solve_amp_factor()
@@ -1127,7 +1127,7 @@ class DifferentialEquation:
 
     def generate_amp_factor(self):
         &#39;&#39;&#39;
-        Creates the latex representation of the amplification factor
+        Computes the amplification factor for the discretized PDE
         &#39;&#39;&#39;
         lhs = exp(symbols(&#39;alpha&#39;)*self.t[&#39;variation&#39;])
         rhs = self.__solve_amp_factor()
@@ -1440,14 +1440,14 @@ order of the derivative, and the time at which the expression is evaluated.</p>
 <span>def <span class="ident">generate_amp_factor</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates the latex representation of the amplification factor</p></section>
+<section class="desc"><p>Computes the amplification factor for the discretized PDE</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def generate_amp_factor(self):
     &#39;&#39;&#39;
-    Creates the latex representation of the amplification factor
+    Computes the amplification factor for the discretized PDE
     &#39;&#39;&#39;
     lhs = exp(symbols(&#39;alpha&#39;)*self.t[&#39;variation&#39;])
     rhs = self.__solve_amp_factor()

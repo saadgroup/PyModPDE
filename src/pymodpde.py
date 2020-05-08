@@ -502,7 +502,7 @@ class DifferentialEquation:
 
     def generate_amp_factor(self):
         '''
-        Creates the latex representation of the amplification factor
+        Computes the amplification factor for the discretized PDE
         '''
         lhs = exp(symbols('alpha')*self.t['variation'])
         rhs = self.__solve_amp_factor()
