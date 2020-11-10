@@ -397,7 +397,7 @@ class DifferentialEquation:
             frac = ratsimp(1 / (fac * I ** N))
             coefficient = simplify(frac * diff_)
             if coefficient != 0:
-                coefs['a{}'.format(ies)] = nsimplify(coefficient)
+                coefs['a{}'.format(ies)] = nsimplify(coefficient.n(),tolerance=1e-14)
                 derivs['a{}'.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
 
         me_lhs = Derivative(self.dependentVar, self.t['sym'], 1)
