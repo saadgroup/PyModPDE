@@ -98,6 +98,21 @@ class DifferentialEquation:
             except:
                 self.__is_jupyter = False
 
+            self.__simplification_tolerance = 1e-6
+
+    @property
+    def simplification_tolerance(self):
+        return self.__simplification_tolerance
+    @simplification_tolerance.setter
+    def simplification_tolerance(self,val):
+        '''
+        tolerance used when simplified the coefficients of the modified equation
+        :param val: positive value, has a default value of 1e-6
+        :return: no return value
+        '''
+        assert val >0
+        self.__simplification_tolerance=val
+
     def symbolic_modified_equation(self):
         '''
         Returns:
@@ -309,7 +324,7 @@ class DifferentialEquation:
     def expr(self, order, directionName, time, stencil):
         '''
         Generates an expression based on the stencil, the directionName,  order of the derivative, and the time at which the expression is evaluated.
-
+        https://web.media.mit.edu/~crtaylor/calculator.html
         Parameters:
             order (int): order of the derivative
             directionName (string): the name of the independent variable that indicate the directionName of the derivative
@@ -397,7 +412,7 @@ class DifferentialEquation:
             frac = ratsimp(1 / (fac * I ** N))
             coefficient = simplify(frac * diff_)
             if coefficient != 0:
-                coefs['a{}'.format(ies)] = nsimplify(coefficient.n(),tolerance=1e-14)
+                coefs['a{}'.format(ies)] = simplify(nsimplify(coefficient.n(),tolerance=self.__simplification_tolerance))
                 derivs['a{}'.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
 
         me_lhs = Derivative(self.dependentVar, self.t['sym'], 1)
@@ -405,7 +420,10 @@ class DifferentialEquation:
         self.__latex_ME_coefs['lhs'] = latex(me_lhs)
         for key in coefs.keys():
             me_rhs += coefs[key] * derivs[key]
-            self.__latex_ME_coefs['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
+            if coefs[key].is_Add:
+                self.__latex_ME_coefs['rhs'][key[1:]] = '\\left('+latex(coefs[key]) + '\\right)' + ' ' + latex(derivs[key])
+            else:
+                self.__latex_ME_coefs['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
         self.__ME = Eq(me_lhs, me_rhs)
         self.__latex_ME = self.__latex()
 
