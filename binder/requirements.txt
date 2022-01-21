@@ -2,6 +2,6 @@ matplotlib==2.0.2
 numpy==1.14.2
 scipy==1.0.0
 ipywidgets==7.5.1
-ipython==7.10.2
+ipython==7.16.3
 sympy==1.5
 jupyter_contrib_nbextensions==0.2.8
