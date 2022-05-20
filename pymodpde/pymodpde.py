@@ -29,7 +29,7 @@ i, j, k, n = symbols('i j k n')
 
 class DifferentialEquation:
     def __init__(self, dependentVarName: str, independentVarsNames: list, indices: list = [i, j, k],
-                 timeIndex: symbol.Symbol = n):
+                 timeIndex: Symbol = n):
         '''
         Parameters:
             dependentVarName (string): name of the dependent variable
@@ -49,13 +49,13 @@ class DifferentialEquation:
             independentVarsNames)
         assert isinstance(indices, list), 'indices() parameter indices={} not of <class "list">'.format(indices)
         assert isinstance(timeIndex,
-                          symbol.Symbol), 'timeIndex() parameter timeIndex={} not of <class "sympy.core.symbol.Symbol">'.format(
+                          Symbol), 'timeIndex() parameter timeIndex={} not of <class "sympy.core.symbol.Symbol">'.format(
             timeIndex)
         for indepVar in independentVarsNames:
             assert isinstance(indepVar, str), 'independentVarsNames members are not of <class "str">'.format(independentVarsNames)
         for index in indices:
             assert isinstance(index,
-                              symbol.Symbol), 'indices members are not of <class "sympy.core.symbol.Symbol">'.format(
+                              Symbol), 'indices members are not of <class "sympy.core.symbol.Symbol">'.format(
                 indices)
 
         if len(independentVarsNames) > 3:
@@ -265,8 +265,8 @@ class DifferentialEquation:
             >>> pretty_print(DE.generate_modified_equation(nterms=2))
         '''
 
-        assert isinstance(time, add.Add) or isinstance(time,
-                                                       symbol.Symbol), 'dependent_var_func() parameter time={} not of <class "sympy.core.add.Add">, or <class "sympy.core.symbol.Symbol">'.format(
+        assert isinstance(time, Add) or isinstance(time,
+                                                       Symbol), 'dependent_var_func() parameter time={} not of <class "sympy.core.add.Add">, or <class "sympy.core.symbol.Symbol">'.format(
             time)
         time_symbols = list(time.free_symbols)
         for sym in time_symbols:
@@ -341,8 +341,8 @@ class DifferentialEquation:
         assert isinstance(directionName, str), 'exp() parameter direcction={} not of <class "str">'.format(directionName)
         assert directionName in self.__independentVars, 'direcction={} not an independent variable. indepVar={}'.format(
             directionName, self.__independentVars)
-        assert isinstance(time, add.Add) \
-               or isinstance(time,symbol.Symbol), \
+        assert isinstance(time, Add) \
+               or isinstance(time,Symbol), \
                'expr() parameter time={} not of <class "sympy.core.add.Add">,' \
                ' or <class "sympy.core.symbol.Symbol">'.format(time)
 

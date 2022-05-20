@@ -1,7 +1,7 @@
-matplotlib==2.0.2
-numpy==1.14.2
-scipy==1.0.0
-ipywidgets==7.5.1
-ipython==7.16.3
-sympy==1.5
-jupyter_contrib_nbextensions==0.2.8
+ipython==8.3.0
+ipywidgets==7.7.0
+matplotlib==3.5.2
+numpy==1.22.4
+scipy==1.8.1
+setuptools==61.2.0
+sympy==1.10.1

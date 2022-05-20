@@ -16,7 +16,19 @@ PyModPDE computes the amplification factor of the finite difference scheme and a
 <br/>
 where, in general, there are inifinitely more terms in the modified equation compared to the original PDE (P > M).
 
+# Installation 
+---
+Clone the package from the github repository into the current directory
+```buildoutcfg
+git clone https://github.com/saadgroup/PyModPDE.git . 
+```
+Use `pip` tool to install the package in the active python evironment
+```buildoutcfg
+pip install .
+```
+
 # Usage
+---
 To use PyModPDE, one has to instantiate a first order time dependent differential equation object by calling its constructor that has the following signature
 ```Python
 DifferentialEquation(dependentVarName,independentVarsNames,indices=[i, j, k], timeIndex=n)
@@ -48,7 +60,7 @@ Below are some examples of using the PyModPDE software.
 Starting with an example of using `expr(...)` with the advection equation in one dimension using Forward Euler for time discretization and UPWIND for spatial discretization
 
 ```Python
-from src.pymodpde import DifferentialEquation, i, n 
+from pymodpde import DifferentialEquation, symbols, i, n 
 
 # defining the advection velocity
 a= symbols('a') 
@@ -73,7 +85,7 @@ DE.generate_modified_equation(nterms=2)
 Similarly, one can use the `<dependentVarName>(...)` instead of `expr(...)` to construct the discretization of the rhs 
 
 ```Python
-from src.pymodpde import DifferentialEquation, i, n 
+from pymodpde import DifferentialEquation, symbols, i, n 
 
 # defining the advection velocity
 a= symbols('a') 
