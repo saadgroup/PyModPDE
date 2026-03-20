@@ -12,6 +12,7 @@ __email__ = "mokbel.karam@chemeng.utah.edu"
 __status__ = "Production"
 
 from sympy import *
+from sympy.core import symbol, add
 from itertools import product
 import functools
 
