@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyModPDE — Modified Equation Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page:    #f5f3ee;
+  --card:    #ffffff;
+  --card2:   #faf9f7;
+  --border:  #e2ded7;
+  --border2: #ccc8bf;
+  --ink:     #1c1917;
+  --ink2:    #44403c;
+  --ink3:    #78716c;
+  --ink4:    #a8a29e;
+  --acc:     #2563eb;
+  --acc-bg:  #eff6ff;
+  --acc-brd: #bfdbfe;
+  --teal:    #0d9488;
+  --teal-bg: #f0fdfa;
+  --teal-brd:#99f6e4;
+  --amber:   #d97706;
+  --amb-bg:  #fffbeb;
+  --amb-brd: #fde68a;
+  --red:     #dc2626;
+  --red-bg:  #fef2f2;
+  --red-brd: #fecaca;
+  --grn:     #16a34a;
+  --grn-bg:  #f0fdf4;
+  --grn-brd: #bbf7d0;
+  --mono: 'JetBrains Mono', monospace;
+  --serif: 'Lora', serif;
+  --sans: 'Inter', sans-serif;
+  --sh: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --sh2: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--page); }
+body { font-family: var(--sans); background: var(--page); color: var(--ink); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+/* ── LOADER ── */
+#ld { position: fixed; inset: 0; background: var(--page); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity .5s; }
+#ld.out { opacity: 0; pointer-events: none; }
+.ld-title { font-family: var(--serif); font-size: 26px; color: var(--ink); font-weight: 500; }
+.ld-title span { color: var(--acc); }
+.ld-track { width: 200px; height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.ld-fill { height: 100%; background: var(--acc); width: 0; transition: width .4s ease; }
+.ld-note { font-family: var(--mono); font-size: 11px; color: var(--ink3); }
+
+/* ── HEADER ── */
+header { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 32px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--sh); }
+.hd-brand { font-family: var(--serif); font-size: 17px; color: var(--ink); font-weight: 500; }
+.hd-brand em { color: var(--acc); font-style: italic; }
+.hd-right { display: flex; align-items: center; gap: 16px; }
+.py-pill { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 11px; padding: 4px 10px; border-radius: 100px; border: 1px solid var(--border2); color: var(--ink3); transition: all .3s; background: var(--card2); }
+.py-pill.ok { color: var(--grn); border-color: var(--grn-brd); background: var(--grn-bg); }
+.py-pill.busy { color: var(--amber); border-color: var(--amb-brd); background: var(--amb-bg); }
+.py-pill.err { color: var(--red); border-color: var(--red-brd); background: var(--red-bg); }
+.py-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.py-pill.busy .py-dot { animation: blink 1s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+
+/* ── PAGE BODY ── */
+.page { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
+
+/* ── SECTION BLOCKS ── */
+.section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; overflow: hidden; box-shadow: var(--sh); }
+.sec-header { padding: 14px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--card2); }
+.sec-num { width: 22px; height: 22px; border-radius: 50%; background: var(--acc); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; font-family: var(--mono); flex-shrink: 0; }
+.sec-title { font-size: 13px; font-weight: 500; color: var(--ink); }
+.sec-sub { font-size: 12px; color: var(--ink3); margin-left: auto; }
+.sec-body { padding: 18px 20px; }
+
+/* ── PDE SETUP ROW ── */
+.setup-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sf { display: flex; align-items: center; gap: 6px; }
+.sl { font-size: 11px; color: var(--ink3); white-space: nowrap; font-weight: 400; }
+input.si, select.si {
+  background: var(--card); border: 1px solid var(--border2); color: var(--ink);
+  font-family: var(--mono); font-size: 13px; padding: 5px 9px;
+  border-radius: 6px; outline: none; width: 60px; transition: border-color .2s, box-shadow .2s;
+}
+select.si { width: auto; padding-right: 26px; appearance: none; font-family: var(--sans); font-size: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2378716c' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center; cursor: pointer; }
+input.si:focus, select.si:focus { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+
+/* ── PALETTE ── */
+.palette-wrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 20px; background: var(--card2); border-bottom: 1px solid var(--border); }
+.pal-label { font-size: 11px; color: var(--ink3); font-weight: 500; letter-spacing: .03em; flex-shrink: 0; }
+.pal-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; background: var(--card);
+  border: 1px solid var(--border2); border-radius: 100px;
+  cursor: grab; user-select: none; transition: all .15s;
+  font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--ink2);
+  white-space: nowrap; flex-shrink: 0;
+  box-shadow: var(--sh);
+}
+.pal-chip:hover { border-color: var(--acc); background: var(--acc-bg); color: var(--acc); box-shadow: var(--sh2); }
+.pal-chip:active { transform: scale(.95); cursor: grabbing; }
+
+/* ── EQUATION CANVAS ── */
+.eq-canvas {
+  min-height: 72px; padding: 14px 20px; display: flex; align-items: center;
+  flex-wrap: wrap; gap: 6px; transition: background .2s, border-color .2s;
+  border-radius: 8px; border: 2px dashed var(--border2); background: var(--card2);
+}
+.eq-canvas.over { background: var(--acc-bg); border-color: var(--acc); }
+.eq-lhs { font-family: var(--serif); font-style: italic; font-size: 22px; color: var(--ink2); white-space: nowrap; line-height: 1; }
+.eq-sign { font-family: var(--serif); font-style: italic; font-size: 22px; color: var(--ink4); padding: 0 8px; flex-shrink: 0; line-height: 1; }
+.eq-rhs { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; flex: 1; min-height: 40px; }
+.eq-hint { font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--ink4); opacity: .7; }
+
+/* ── PLACED TERM CHIP ── */
+.term-chip {
+  display: inline-flex; align-items: stretch;
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 8px; overflow: hidden; flex-shrink: 0;
+  box-shadow: var(--sh); transition: box-shadow .15s;
+}
+.term-chip:hover { box-shadow: var(--sh2); }
+.tc-signs { display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+.tc-sb {
+  background: none; border: none; color: var(--ink4);
+  font-family: var(--mono); font-size: 11px; padding: 3px 7px;
+  cursor: pointer; transition: all .15s; line-height: 1.2; flex: 1;
+  display: flex; align-items: center;
+}
+.tc-sb:hover { background: var(--card2); color: var(--ink); }
+.tc-sb.on { background: var(--acc-bg); color: var(--acc); }
+.tc-math { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--ink); padding: 6px 12px; align-self: center; line-height: 1.2; font-weight: 400; }
+.tc-del { background: none; border: none; border-left: 1px solid var(--border); color: var(--ink4); padding: 0 9px; cursor: pointer; font-size: 12px; align-self: stretch; display: flex; align-items: center; transition: all .15s; }
+.tc-del:hover { background: var(--red-bg); color: var(--red); }
+
+/* ── SECTION 2: DISC ── */
+.disc-intro { font-size: 13px; color: var(--ink3); margin-bottom: 16px; font-style: italic; }
+
+/* term row */
+.term-disc-row {
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  margin-bottom: 12px; background: var(--card);
+}
+.tdr-head {
+  display: flex; align-items: center; gap: 0;
+  background: var(--card2); border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+}
+.tdr-math { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--ink); flex: 1; line-height: 1.2; font-weight: 400; }
+/* time toggle inline */
+.time-toggle { display: flex; gap: 4px; flex-shrink: 0; }
+.tt-btn { background: var(--card); border: 1px solid var(--border2); color: var(--ink3); font-family: var(--mono); font-size: 11px; padding: 4px 10px; border-radius: 100px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.tt-btn:hover { border-color: var(--acc); color: var(--acc); }
+.tt-btn.on { background: var(--acc-bg); border-color: var(--acc); color: var(--acc); font-weight: 500; }
+/* direction badge */
+.dir-badge { font-family: var(--mono); font-size: 11px; color: var(--ink3); background: var(--card); border: 1px solid var(--border); border-radius: 100px; padding: 3px 10px; margin-left: 8px; cursor: pointer; transition: all .15s; }
+.dir-badge.open { border-color: var(--acc); color: var(--acc); }
+
+.tdr-body { padding: 12px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 640px) { .tdr-body { grid-template-columns: 1fr; } }
+
+.tdr-label { font-size: 10px; font-weight: 500; color: var(--ink3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+
+/* stencil grid */
+.stencil-pts { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.spt { font-family: var(--mono); font-size: 12px; padding: 4px 10px; border-radius: 100px; border: 1px solid var(--border2); color: var(--ink3); background: var(--card2); cursor: pointer; transition: all .15s; user-select: none; }
+.spt:hover { border-color: var(--acc); color: var(--acc); background: var(--acc-bg); }
+.spt.on { background: var(--acc-bg); border-color: var(--acc); color: var(--acc); font-weight: 500; }
+
+/* coef input */
+.coef-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.coef-label { font-size: 11px; color: var(--ink3); }
+.coef-inp { background: var(--card); border: 1px solid var(--border2); color: var(--ink); font-family: var(--mono); font-size: 13px; padding: 5px 10px; border-radius: 6px; outline: none; width: 100px; transition: border-color .2s, box-shadow .2s; }
+.coef-inp:focus { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+
+/* stencil preview */
+.stencil-preview {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; min-height: 40px;
+  font-family: var(--serif); font-style: italic; font-size: 14px;
+  color: var(--ink2); line-height: 1.8;
+}
+.stencil-preview .sp-label { font-family: var(--sans); font-style: normal; font-size: 10px; color: var(--ink4); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; display: block; }
+
+/* ── SECTION 3: RESULTS ── */
+.nterms-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 10px 14px; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; }
+.nterms-label { font-size: 12px; color: var(--ink3); white-space: nowrap; }
+.nterms-row input[type=range] { flex: 1; accent-color: var(--acc); }
+.nterms-val { font-family: var(--mono); font-size: 13px; color: var(--acc); font-weight: 500; min-width: 18px; text-align: right; }
+
+.gen-btn {
+  width: 100%; padding: 12px; background: var(--acc); color: #fff;
+  border: none; border-radius: 8px; font-family: var(--sans); font-size: 14px;
+  font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 8px; transition: all .15s; letter-spacing: .01em;
+}
+.gen-btn:hover { background: #1d4ed8; }
+.gen-btn:active { transform: scale(.99); }
+.gen-btn:disabled { background: var(--border2); color: var(--ink4); cursor: not-allowed; transform: none; }
+.spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* error */
+.err-box { background: var(--red-bg); border: 1px solid var(--red-brd); border-radius: 6px; padding: 10px 14px; font-family: var(--mono); font-size: 11px; color: var(--red); margin-bottom: 12px; white-space: pre-wrap; line-height: 1.6; display: none; }
+
+/* result display */
+.result-block { display: none; }
+.result-block.show { display: block; }
+
+.res-eq {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 20px; margin-bottom: 16px;
+}
+.res-eq .res-label { font-size: 10px; font-weight: 500; color: var(--ink4); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px; display: block; }
+.res-eq-math {
+  color: var(--ink); min-height: 40px;
+  overflow-x: auto; overflow-y: hidden;
+  /* allow MathJax to render at a comfortable size then scroll */
+  font-size: .92em;
+  padding-bottom: 4px;
+}
+/* MathJax size control — driven by --eq-font-size CSS variable */
+.res-eq-math mjx-container { font-size: var(--eq-font-size, 90%) !important; }
+
+.coef-table-wrap { overflow-x: auto; margin-bottom: 16px; }
+.coef-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.coef-table th { text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink4); padding: 8px 12px; border-bottom: 2px solid var(--border); background: var(--card2); font-family: var(--sans); }
+.coef-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.coef-table tr:last-child td { border-bottom: none; }
+.coef-table tr:hover td { background: var(--card2); }
+.order-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--acc-bg); color: var(--acc); font-size: 11px; font-weight: 600; font-family: var(--mono); }
+
+.char-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+@media (max-width: 640px) { .char-row { grid-template-columns: 1fr 1fr; } }
+.char-card { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.char-card-label { font-size: 10px; font-weight: 500; color: var(--ink4); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+.char-card-val { font-family: var(--mono); font-size: 12px; color: var(--ink); }
+.char-tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 4px; font-family: var(--sans); font-weight: 500; }
+.ct-diff { background: var(--acc-bg); color: var(--acc); }
+.ct-disp { background: var(--amb-bg); color: var(--amber); }
+
+.lat-block { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
+.lat-head { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; border-bottom: 1px solid var(--border); }
+.lat-title { font-size: 10px; font-weight: 600; color: var(--ink4); text-transform: uppercase; letter-spacing: .08em; }
+.lat-copy { font-family: var(--mono); font-size: 10px; color: var(--ink3); background: none; border: 1px solid var(--border2); padding: 3px 9px; border-radius: 100px; cursor: pointer; transition: all .15s; }
+.lat-copy:hover { color: var(--ink); border-color: var(--ink3); }
+.lat-body { padding: 12px 14px; font-family: var(--mono); font-size: 11.5px; color: var(--ink2); white-space: pre-wrap; word-break: break-all; line-height: 1.75; overflow-x: auto; }
+
+/* divider */
+.res-divider { font-size: 11px; font-weight: 600; color: var(--ink4); text-transform: uppercase; letter-spacing: .1em; margin: 20px 0 12px; display: flex; align-items: center; gap: 10px; }
+.res-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+
+/* ── THEORY SECTION ── */
+.theory-head {
+  font-size: 12px; font-weight: 600; color: var(--ink);
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-bottom: 8px; margin-top: 4px;
+}
+.theory-body {
+  font-size: 13px; color: var(--ink3); line-height: 1.7;
+  margin-bottom: 10px;
+}
+.theory-eq {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 16px; margin: 10px 0;
+  overflow-x: auto; font-size: .95em;
+}
+.interp-card {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+}
+.ic-title {
+  font-size: 12px; font-weight: 600; margin-bottom: 5px;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.ic-body {
+  font-size: 12px; color: var(--ink3); line-height: 1.6;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="ld">
+  <div class="ld-title">Py<span>Mod</span>PDE</div>
+  <div class="ld-track"><div class="ld-fill" id="lf"></div></div>
+  <div class="ld-note" id="ln">Initialising Python runtime…</div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hd-brand">Py<em>Mod</em>PDE <span style="font-size:12px;font-family:var(--sans);font-style:normal;color:var(--ink3);font-weight:400;margin-left:6px">Modified Equation Analysis</span></div>
+  <div class="hd-right">
+    <div class="py-pill" id="pypill"><div class="py-dot"></div><span id="pytxt">Loading…</span></div>
+  </div>
+</header>
+
+<div class="page">
+
+<!-- ════════════════════════════════════
+     § 1  DEFINE YOUR PDE
+════════════════════════════════════ -->
+<div class="section">
+  <div class="sec-header">
+    <div class="sec-num">1</div>
+    <span class="sec-title">Define your PDE</span>
+    <span class="sec-sub">Build the continuous right-hand side by dragging or clicking terms</span>
+  </div>
+
+  <!-- setup row -->
+  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--card2)">
+    <div class="setup-row">
+      <div class="sf"><span class="sl">Dep. var</span><input class="si" id="dep" value="u" maxlength="4" oninput="onSetupChange()"></div>
+      <div class="sf"><span class="sl">Dimension</span>
+        <select class="si" id="ndim" onchange="onSetupChange()">
+          <option value="1">1D</option><option value="2">2D</option><option value="3">3D</option>
+        </select>
+      </div>
+      <div class="sf"><span class="sl">x =</span><input class="si" id="vx" value="x" maxlength="4" oninput="onSetupChange()"></div>
+      <div class="sf" id="ywrap" style="opacity:.4"><span class="sl">y =</span><input class="si" id="vy" value="y" maxlength="4" disabled oninput="onSetupChange()"></div>
+      <div class="sf" id="zwrap" style="opacity:.4"><span class="sl">z =</span><input class="si" id="vz" value="z" maxlength="4" disabled oninput="onSetupChange()"></div>
+    </div>
+  </div>
+
+  <!-- palette -->
+  <div class="palette-wrap" id="palette"></div>
+
+  <!-- equation canvas -->
+  <div style="padding:16px 20px 20px">
+    <div class="eq-canvas" id="eqcanvas"
+      ondragover="handleDO(event)" ondragleave="handleDL(event)" ondrop="handleDrop(event)">
+      <div class="eq-lhs" id="eqlhs">∂u/∂t</div>
+      <div class="eq-sign">=</div>
+      <div class="eq-rhs" id="eqrhs">
+        <span class="eq-hint">drag or click terms from above…</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     § 2  DISCRETISE EACH TERM
+════════════════════════════════════ -->
+<div class="section" id="sec2">
+  <div class="sec-header">
+    <div class="sec-num">2</div>
+    <span class="sec-title">Discretise each term</span>
+    <span class="sec-sub">Choose stencil, time level, and coefficient for each RHS term</span>
+  </div>
+  <div class="sec-body">
+    <div id="disc-cards">
+      <div style="font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink4);text-align:center;padding:20px 0">
+        Add terms in step 1 to configure their discretisation here.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     § 3  GENERATE & RESULTS
+════════════════════════════════════ -->
+<div class="section">
+  <div class="sec-header">
+    <div class="sec-num">3</div>
+    <span class="sec-title">Generate Modified Equation</span>
+  </div>
+  <div class="sec-body">
+    <div class="nterms-row">
+      <span class="nterms-label">Number of ME terms beyond leading order</span>
+      <input type="range" id="nterms" min="1" max="6" value="3" oninput="document.getElementById('ntv').textContent=this.value">
+      <span class="nterms-val" id="ntv">3</span>
+    </div>
+    <div class="err-box" id="errmsg"></div>
+    <button class="gen-btn" id="genbtn" onclick="runAnalysis()" disabled>
+      <div class="spin" id="genspin"></div>
+      <span id="gentxt">Generate Modified Equation</span>
+    </button>
+
+    <!-- RESULTS — shown after generation -->
+    <div class="result-block" id="results">
+
+      <div class="res-divider" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span>Modified Equation</span>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+          <span style="font-size:11px;color:var(--ink4);font-weight:400;text-transform:none;letter-spacing:0">font size</span>
+          <input type="range" id="eq-font-slider" min="60" max="130" value="90"
+            style="width:90px;accent-color:var(--acc);cursor:pointer"
+            oninput="updateEqFontSize(this.value)">
+          <span id="eq-font-val" style="font-family:var(--mono);font-size:11px;color:var(--acc);min-width:32px">90%</span>
+        </div>
+      </div>
+      <div class="res-eq">
+        <span class="res-label">Modified Equation</span>
+        <div class="res-eq-math" id="d-me"></div>
+      </div>
+
+      <div class="char-row" id="d-char"></div>
+
+      <div class="res-divider">Amplification Factor</div>
+      <div class="res-eq">
+        <span class="res-label">G = e<sup>αΔt</sup></span>
+        <div class="res-eq-math" id="d-amp"></div>
+      </div>
+
+      <div class="res-divider">Coefficients</div>
+      <div class="coef-table-wrap">
+        <table class="coef-table">
+          <thead><tr><th>Order</th><th>Index</th><th>Coefficient expression</th></tr></thead>
+          <tbody id="ctbody"></tbody>
+        </table>
+      </div>
+
+      <div class="res-divider">LaTeX</div>
+      <div class="lat-block">
+        <div class="lat-head"><span class="lat-title">Modified Equation</span><button class="lat-copy" onclick="cp('lat-me')">Copy</button></div>
+        <div class="lat-body" id="lat-me"></div>
+      </div>
+      <div class="lat-block">
+        <div class="lat-head"><span class="lat-title">Amplification Factor</span><button class="lat-copy" onclick="cp('lat-amp')">Copy</button></div>
+        <div class="lat-body" id="lat-amp"></div>
+      </div>
+
+    </div><!-- /results -->
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     § 4  THEORY
+════════════════════════════════════ -->
+<div class="section" id="sec-theory">
+  <div class="sec-header">
+    <div class="sec-num" style="background:var(--ink3)">§</div>
+    <span class="sec-title">The Modified Equation</span>
+    <span class="sec-sub">Theory lifted from Karam, Sutherland &amp; Saad (2020)</span>
+  </div>
+  <div class="sec-body" style="display:grid;grid-template-columns:1fr 1fr;gap:28px 40px">
+
+    <!-- What is it -->
+    <div style="grid-column:1/-1">
+      <p style="font-size:14px;color:var(--ink2);line-height:1.75;">
+        When a finite difference scheme is applied to a PDE, it does not solve the
+        original equation exactly — it solves a different PDE entirely, known as the
+        <em style="font-family:var(--serif)">modified equation</em>. This equation
+        accounts for the truncation error introduced by the discretisation and reveals
+        the true physics being simulated. Odd-order derivative terms correspond to
+        advection and dispersion; even-order terms correspond to diffusion. The
+        coefficients of the modified equation allow one to make rational arguments
+        about stability, numerical diffusion, and numerical dispersion.
+      </p>
+    </div>
+
+    <!-- 1D -->
+    <div>
+      <div class="theory-head">1D form</div>
+      <p class="theory-body">
+        For a linear PDE with constant coefficients and a corresponding difference
+        scheme, the modified equation takes the general form
+      </p>
+      <div class="theory-eq" id="teq-1d"></div>
+      <p class="theory-body">
+        where the coefficients \(a_i\) are not, in general, equal to the coefficients
+        of the original PDE. The leading even-order coefficient \(a_2\) governs
+        numerical diffusion; the leading odd-order coefficient beyond \(a_1\) governs
+        numerical dispersion.
+      </p>
+    </div>
+
+    <!-- 2D -->
+    <div>
+      <div class="theory-head">2D form</div>
+      <p class="theory-body">
+        In two spatial dimensions the modified equation takes the form
+      </p>
+      <div class="theory-eq" id="teq-2d"></div>
+      <p class="theory-body">
+        Note the cross-derivative term \(a_{11}u_{xy}\), which is absent from the 1D
+        analysis. It introduces <em>anisotropic diffusion</em> — the scheme behaves
+        differently in different spatial directions. The coefficients \(a_{jl}\) carry
+        a double index \((j,l)\) denoting the order of differentiation in \(x\) and
+        \(y\) respectively.
+      </p>
+    </div>
+
+    <!-- Interpretation -->
+    <div style="grid-column:1/-1">
+      <div class="theory-head">Interpreting the coefficients</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px">
+        <div class="interp-card" style="border-left:3px solid var(--acc)">
+          <div class="ic-title" style="color:var(--acc)">Advection</div>
+          <div class="ic-body">Odd-order terms (\(u_x,\,u_{xxx},\ldots\)).
+          \(a_1\) recovers the original wave speed; higher odd terms represent
+          numerical dispersion.</div>
+        </div>
+        <div class="interp-card" style="border-left:3px solid var(--teal)">
+          <div class="ic-title" style="color:var(--teal)">Diffusion</div>
+          <div class="ic-body">Even-order terms (\(u_{xx},\,u_{xxxx},\ldots\)).
+          \(a_2 > 0\) means the scheme adds numerical dissipation;
+          \(a_2 < 0\) means it is anti-diffusive (unstable).</div>
+        </div>
+        <div class="interp-card" style="border-left:3px solid var(--amber)">
+          <div class="ic-title" style="color:var(--amber)">Anisotropy (2D+)</div>
+          <div class="ic-body">Cross-derivative terms (\(u_{xy},\,\ldots\)).
+          Non-zero \(a_{11}\) causes the scheme to behave asymmetrically
+          across spatial directions.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     CITATION
+════════════════════════════════════ -->
+<div style="margin-top:8px;padding:16px 20px;background:var(--card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:flex-start;gap:14px;box-shadow:var(--sh)">
+  <div style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--card2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--ink3);margin-top:1px">📄</div>
+  <div>
+    <div style="font-size:10px;font-weight:600;color:var(--ink4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Citation</div>
+    <div style="font-size:13px;color:var(--ink2);line-height:1.65">
+      Karam, M., Sutherland, J. C., &amp; Saad, T. (2020).
+      <span style="font-weight:500;color:var(--ink)">PyModPDE: A Python software for modified equation analysis.</span>
+      <em>SoftwareX</em>, 12, 100541.
+      <a href="https://doi.org/10.1016/j.softx.2020.100541"
+         style="color:var(--acc);text-decoration:none;font-family:var(--mono);font-size:11px;margin-left:4px">
+        doi:10.1016/j.softx.2020.100541 ↗
+      </a>
+    </div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<!-- MATHJAX — use CHTML for crisp upright math, not SVG bold -->
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']] },
+  chtml: { fontURL: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/output/chtml/fonts/woff-v2' },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] },
+  startup: {
+    typeset: false,
+    ready() {
+      MathJax.startup.defaultReady();
+      MathJax.startup.promise.then(() => {
+        // Inject theory equations as clean JS strings (avoids HTML escape issues)
+        const eq1d = document.getElementById('teq-1d');
+        if (eq1d) eq1d.innerHTML = '\\(' +
+          'u_t = a_1 u_x + a_2 u_{xx} + a_3 u_{xxx} + \\cdots' +
+          ' = \\displaystyle\\sum_{n=1}^{\\infty} a_n \\frac{\\partial^n u}{\\partial x^n}' +
+          '\\)';
+        const eq2d = document.getElementById('teq-2d');
+        if (eq2d) eq2d.innerHTML = '\\[\\begin{aligned}' +
+          'u_t &= a_{10}u_x + a_{01}u_y + a_{11}u_{xy} + a_{20}u_{xx} + a_{02}u_{yy} + \\cdots \\\\' +
+          '&= \\displaystyle\\sum_{\\substack{j,\\,l\\,\\geq\\,0 \\\\ j+l\\,\\geq\\,1}}' +
+          ' a_{jl}\\,\\frac{\\partial^{j+l}u}{\\partial x^j\\,\\partial y^l}' +
+          '\\end{aligned}\\]';
+        MathJax.typesetPromise([document.getElementById('sec-theory')]);
+      });
+    }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+<script>
+// ════════════════════════════════════════════
+// PYMODPDE ENGINE (Pyodide)
+// ════════════════════════════════════════════
+const ENGINE = `
+import sympy as sp
+from sympy import (symbols, exp, I, log, diff, factorial, solve, expand,
+                   collect, ratsimp, nsimplify, simplify, Eq, Derivative,
+                   Function, Mul, Symbol, Integer, preorder_traversal,
+                   latex, Matrix)
+from itertools import product as ipr
+
+i, j, k, n = symbols('i j k n')
+
+def _sc(pts, o):
+    if o >= len(pts): raise ValueError(f"order {o} >= stencil len {len(pts)}")
+    M = Matrix([[sp.Rational(s**r) for s in pts] for r in range(len(pts))])
+    b = Matrix([factorial(o) if r==o else Integer(0) for r in range(len(pts))])
+    return list(M.solve(b))
+
+def _fp(t):
+    r = Integer(1)
+    for m in t: r *= factorial(m)
+    return r
+
+class DifferentialEquation:
+    def __init__(self, dependentVarName, independentVarsNames, indices=None, timeIndex=None):
+        if timeIndex is None: timeIndex = n
+        if indices is None: indices = [i,j,k][:len(independentVarsNames)]
+        self._dep  = dependentVarName
+        self._indep = independentVarsNames
+        self._inds  = indices
+        self._tidx  = timeIndex
+        self.vars = {}
+        for num,(v,ix) in enumerate(zip(independentVarsNames, indices), 1):
+            self.vars[v] = {'sym':Symbol(v), 'waveNum':Symbol(f'k{num}'),
+                            'variation':Symbol(f'\\\\Delta{{{v}}}'), 'index':ix}
+            setattr(self, f'd{v}', self.vars[v]['variation'])
+        self.t = {'sym':Symbol('t'), 'ampFactor':Symbol('q'),
+                  'variation':Symbol(r'\\Delta{t}'), 'index':timeIndex}
+        setattr(self, 'dt', self.t['variation'])
+        self.dependentVar = Function(dependentVarName)(
+            *([self.vars[v]['sym'] for v in independentVarsNames] + [self.t['sym']]))
+        setattr(self, dependentVarName, self.dependent_var_func)
+        idxd = {v: self.vars[v]['index'] for v in independentVarsNames}
+        self.lhs = (self.dependent_var_func(timeIndex+1,**idxd)
+                    - self.dependent_var_func(timeIndex,**idxd)) / self.t['variation']
+        self.rhs = None
+        self._G = None; self._al = None; self._ME = None
+        self._c = {}; self._d = {}; self._lme = ''; self.tol = 1e-6
+
+    def dependent_var_func(self, time, **kw):
+        e = exp(self.t['ampFactor']*(self.t['sym']+(time-self.t['index'])*self.t['variation']))
+        for v,gidx in kw.items():
+            vd = self.vars[v]
+            e *= exp(I*vd['waveNum']*(vd['sym']+(gidx-vd['index'])*vd['variation']))
+        return e
+
+    def expr(self, order, directionName, time, stencil):
+        if directionName not in self._indep:
+            raise ValueError(f"directionName '{directionName}' not in {self._indep}")
+        cs = _sc(stencil, order); d = self.vars[directionName]['variation']
+        ix0 = self.vars[directionName]['index']
+        tot = Integer(0)
+        for c,pt in zip(cs,stencil):
+            kw = {v: self.vars[v]['index'] for v in self._indep}; kw[directionName] = ix0+pt
+            tot += c*self.dependent_var_func(time=time,**kw)
+        return ratsimp(tot/d**order)
+
+    def set_rhs(self, expr):
+        self.rhs = expr; self._G = self._al = self._ME = None; return self
+
+    def _solveG(self):
+        A = Symbol('A')
+        base = self.dependent_var_func(self._tidx, **{v:self.vars[v]['index'] for v in self._indep})
+        eq = expand(simplify(self.lhs/base) - simplify(self.rhs/base))
+        eq = eq.subs(exp(self.t['ampFactor']*self.t['variation']), A); eq = collect(eq, A)
+        sols = solve(eq, A)
+        if not sols: raise RuntimeError("Cannot solve for G")
+        return simplify(sols[0])
+
+    def generate_amp_factor(self):
+        Gr = self._solveG()
+        self._G  = Eq(exp(Symbol('alpha')*self.t['variation']), Gr)
+        self._al = ratsimp(log(Gr)/self.t['variation']); return self
+
+    def _mo(self, alpha):
+        deltas = [self.vars[v]['variation'] for v in self._indep]; mo = []
+        for d in deltas:
+            pw = {abs(int(ex)) for b,ex in (t.as_base_exp() for t in preorder_traversal(alpha))
+                  if b==d and ex.is_integer}
+            mo.append(max(pw, default=0))
+        cm = 0
+        for combo in ipr(*[range(-m,m+1) for m in mo]):
+            if sum(abs(c) for c in combo)==0: continue
+            term = Mul(*[d**p for d,p in zip(deltas,combo)])
+            if alpha.has(term): cm = max(cm, sum(abs(c) for c in combo))
+        return max(max(mo, default=0), cm)
+
+    def generate_modified_equation(self, nterms=2):
+        if self._G is None: self.generate_amp_factor()
+        al = self._al; tot = self._mo(al)+nterms
+        k0 = {self.vars[v]['waveNum']:Integer(0) for v in self._indep}
+        c = {}; d = {}
+        for combo in ipr(range(tot), repeat=len(self._indep)):
+            if not(0<sum(combo)<tot): continue
+            N=sum(combo); wrt=[]
+            for vn,p in zip(self._indep,combo): wrt+=[self.vars[vn]['waveNum'],p]
+            da=diff(al,*wrt).subs(k0); fac=_fp(combo)
+            cv=simplify(da/(fac*I**N))
+            cv=nsimplify(cv.evalf(),tolerance=self.tol,rational=False); cv=simplify(cv)
+            if cv==0: continue
+            key=''.join(str(p) for p in combo); c[key]=cv; ws=[]
+            for vn,p in zip(self._indep,combo): ws+=[self.vars[vn]['sym'],p]
+            d[key]=Derivative(self.dependentVar,*ws)
+        self._c=c; self._d=d
+        lhs2=Derivative(self.dependentVar,self.t['sym'],1)
+        rhs2=sum(c[kk]*d[kk] for kk in c) if c else Integer(0)
+        self._ME=Eq(lhs2,rhs2); self._lme=self._bl(); return self
+
+    def _bl(self):
+        lhs=latex(Derivative(self.dependentVar,self.t['sym']))
+        gs={}
+        for key in sorted(self._c,key=lambda k:sum(int(x) for x in k)):
+            N=sum(int(x) for x in key); cv=self._c[key]; dv=self._d[key]
+            cs2=latex(cv); ds=latex(dv)
+            ts=f'\\\\left({cs2}\\\\right) {ds}' if cv.is_Add else f'{cs2} {ds}'
+            if N in gs: gs[N]+=(' ' if ts.startswith('-') else ' + ')+ts
+            else: gs[N]=ts
+        rhs=''
+        for idx,N in enumerate(sorted(gs)):
+            s=gs[N]; rhs+=(' ' if s.startswith('-') else(' + ' if idx>0 else ' '))+s
+        return lhs+' = '+rhs.strip()
+
+    def latex_amp_factor(self):   return latex(self._G)
+    def latex_modified_equation(self): return self._lme
+    def me_coefficients_latex(self): return {k:latex(v) for k,v in self._c.items()}
+
+print("ENGINE_OK")
+`;
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+let pyodide = null;
+let terms = [];
+let discMap = {};
+let tid = 0;
+
+// ════════════════════════════════════════════
+// PALETTE
+// ════════════════════════════════════════════
+function palDefs() {
+  const dep = document.getElementById('dep').value || 'u';
+  const nd  = +document.getElementById('ndim').value;
+  const vx  = document.getElementById('vx').value || 'x';
+  const vy  = document.getElementById('vy').value || 'y';
+  const vz  = document.getElementById('vz').value || 'z';
+  const vs  = [vx, nd>=2?vy:null, nd>=3?vz:null].filter(Boolean);
+  const defs = [];
+  vs.forEach(v => {
+    defs.push({ key:`adv-${v}`,   html:`a ∂${dep}/∂${v}`,     varDir:v, order:1, coefSym:'a'   });
+    defs.push({ key:`diff2-${v}`, html:`μ ∂²${dep}/∂${v}²`,   varDir:v, order:2, coefSym:'mu'  });
+    defs.push({ key:`diff4-${v}`, html:`κ ∂⁴${dep}/∂${v}⁴`,   varDir:v, order:4, coefSym:'kappa' });
+  });
+  if (nd >= 2) defs.push({ key:`cross`, html:`α ∂²${dep}/∂${vx}∂${vy}`, varDir:vx, order:1, coefSym:'alpha_c' });
+  defs.push({ key:`adv3`, html:`β ∂³${dep}/∂${vs[0]}³`, varDir:vs[0], order:3, coefSym:'beta' });
+  return defs;
+}
+
+function buildPalette() {
+  const pal = document.getElementById('palette');
+  pal.innerHTML = '<span class="pal-label">Terms →</span>';
+  palDefs().forEach(def => {
+    const el = document.createElement('div');
+    el.className = 'pal-chip';
+    el.draggable = true;
+    el.dataset.key = def.key;
+    el.textContent = def.html;
+    el.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', def.key); e.dataTransfer.effectAllowed = 'copy'; });
+    el.addEventListener('click', () => addTerm(def.key));
+    pal.appendChild(el);
+  });
+}
+
+function onSetupChange() {
+  const nd = +document.getElementById('ndim').value;
+  document.getElementById('ywrap').style.opacity = nd>=2?'1':'.4';
+  document.getElementById('vy').disabled = nd<2;
+  document.getElementById('zwrap').style.opacity = nd>=3?'1':'.4';
+  document.getElementById('vz').disabled = nd<3;
+
+  // Remove any placed terms that belong to variables no longer active
+  const activeVars = getVars();
+  const removed = terms.filter(t => t.varDir && !activeVars.includes(t.varDir));
+  removed.forEach(t => { delete discMap[t.id]; });
+  terms = terms.filter(t => !removed.includes(t));
+
+  buildPalette();
+  refreshLHS();
+  renderRHS();
+  rebuildAllDiscCards();
+}
+
+// ════════════════════════════════════════════
+// DRAG / DROP
+// ════════════════════════════════════════════
+function handleDO(e) { e.preventDefault(); e.dataTransfer.dropEffect='copy'; document.getElementById('eqcanvas').classList.add('over'); }
+function handleDL(e) { if (!document.getElementById('eqcanvas').contains(e.relatedTarget)) document.getElementById('eqcanvas').classList.remove('over'); }
+function handleDrop(e) { e.preventDefault(); document.getElementById('eqcanvas').classList.remove('over'); const k=e.dataTransfer.getData('text/plain'); if(k) addTerm(k); }
+
+function addTerm(key) {
+  const def = palDefs().find(d => d.key === key);
+  if (!def) return;
+  const id = ++tid;
+  terms.push({ id, key, varDir: def.varDir, order: def.order, coefSym: def.coefSym, sign: '+' });
+  discMap[id] = { time: 'n', stencil: def.order>=2 ? [-1,0,1] : [-1,0], coefSym: def.coefSym, dir: def.varDir };
+  renderRHS();
+  rebuildAllDiscCards();
+}
+
+function renderRHS() {
+  const dep = document.getElementById('dep').value || 'u';
+  const rhs = document.getElementById('eqrhs');
+  rhs.innerHTML = '';
+  if (!terms.length) { rhs.innerHTML = '<span class="eq-hint">drag or click terms from above…</span>'; return; }
+  terms.forEach(t => {
+    const def = palDefs().find(d => d.key === t.key) || { html: t.coefSym };
+    const el = document.createElement('div');
+    el.className = 'term-chip'; el.id = `chip-${t.id}`;
+    el.innerHTML = `
+      <div class="tc-signs">
+        <button class="tc-sb${t.sign==='+'?' on':''}" onclick="setSign(${t.id},'+')">+</button>
+        <button class="tc-sb${t.sign==='-'?' on':''}" onclick="setSign(${t.id},'-')">−</button>
+      </div>
+      <div class="tc-math">${t.sign==='-'?'−':'+'}\u202f${def.html}</div>
+      <button class="tc-del" onclick="rmTerm(${t.id})">✕</button>`;
+    rhs.appendChild(el);
+  });
+}
+
+function setSign(id, s) { const t=terms.find(t=>t.id===id); if(t){ t.sign=s; renderRHS(); rebuildAllDiscCards(); } }
+function rmTerm(id) { terms=terms.filter(t=>t.id!==id); delete discMap[id]; renderRHS(); rebuildAllDiscCards(); }
+function refreshLHS() { document.getElementById('eqlhs').textContent = `∂${document.getElementById('dep').value||'u'}/∂t`; }
+
+// ════════════════════════════════════════════
+// STENCIL PREVIEW (pure JS, no Python needed)
+// ════════════════════════════════════════════
+function stencilPreviewHTML(termId) {
+  const t = terms.find(t => t.id === termId);
+  const disc = discMap[termId];
+  if (!t || !disc || disc.stencil.length < 2) return '<em>select ≥ 2 stencil points</em>';
+
+  const dep    = document.getElementById('dep').value || 'u';
+  const coef   = disc.coefSym || 'a';
+  const order  = t.order;
+  const dir    = disc.dir || t.varDir;
+  const stencil= [...disc.stencil].sort((a,b)=>a-b);
+  const time   = disc.time;
+
+  // finite difference weights via Fornberg's algorithm
+  const n = stencil.length;
+  let M = Array.from({length:n},()=>Array(n).fill(0));
+  for (let r=0; r<n; r++) for (let c=0; c<n; c++) M[r][c] = Math.pow(stencil[c], r);
+  // solve M * w = b where b[order]=order!, rest 0
+  const b = Array(n).fill(0); b[order] = factorial_js(order);
+  const w = gaussSolve(M, b);
+
+  // build display
+  const tLabel = time === 'n+1' ? 'n+1' : time === 'n-1' ? 'n-1' : 'n';
+  const dxStr  = `Δ${dir}`;
+
+  // numerator terms
+  const numParts = stencil.map((pt,idx) => {
+    const wt = toFrac(w[idx]);
+    const sub = pt===0 ? 'i' : pt>0 ? `i+${pt}` : `i${pt}`;
+    const uTerm = `${dep}<sub>${sub}</sub><sup>${tLabel}</sup>`;
+    if (Math.abs(w[idx]) < 1e-12) return null;
+    const coefStr = wt === '1' ? '' : wt === '-1' ? '-' : wt + ' ';
+    return `${coefStr}${uTerm}`;
+  }).filter(Boolean);
+
+  const numStr = numParts.map((p,i) => {
+    if (i===0) return p;
+    return p.startsWith('-') ? ` ${p}` : ` + ${p}`;
+  }).join('');
+
+  const denomStr = order===1 ? dxStr : `${dxStr}<sup>${order}</sup>`;
+  return `<em>${coef}</em> · (${numStr}) / ${denomStr}`;
+}
+
+function factorial_js(n) { let r=1; for(let i=2;i<=n;i++) r*=i; return r; }
+
+function toFrac(x) {
+  if (Math.abs(x) < 1e-12) return '0';
+  // try small denominators
+  for (let d=1; d<=12; d++) {
+    const n = Math.round(x*d);
+    if (Math.abs(n/d - x) < 1e-9) {
+      if (d===1) return `${n}`;
+      const g = gcd(Math.abs(n),d);
+      return `${n/g}/${d/g}`;
+    }
+  }
+  return x.toFixed(4);
+}
+function gcd(a,b){return b===0?a:gcd(b,a%b);}
+
+function gaussSolve(A, b) {
+  const n = b.length;
+  // augmented
+  let M = A.map((row,i) => [...row, b[i]]);
+  for (let col=0; col<n; col++) {
+    // pivot
+    let maxRow=col;
+    for (let row=col+1;row<n;row++) if(Math.abs(M[row][col])>Math.abs(M[maxRow][col])) maxRow=row;
+    [M[col],M[maxRow]]=[M[maxRow],M[col]];
+    for (let row=col+1;row<n;row++) {
+      const f=M[row][col]/M[col][col];
+      for (let k=col;k<=n;k++) M[row][k]-=f*M[col][k];
+    }
+  }
+  const x=Array(n).fill(0);
+  for(let i=n-1;i>=0;i--){
+    x[i]=M[i][n]/M[i][i];
+    for(let k=i-1;k>=0;k--) M[k][n]-=M[k][i]*x[i];
+  }
+  return x;
+}
+
+// ════════════════════════════════════════════
+// DISC CARDS
+// ════════════════════════════════════════════
+function rebuildAllDiscCards() {
+  const container = document.getElementById('disc-cards');
+  container.innerHTML = '';
+  if (!terms.length) {
+    container.innerHTML = '<div style="font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink4);text-align:center;padding:20px 0">Add terms in step 1 to configure their discretisation here.</div>';
+    return;
+  }
+  const vs = getVars();
+  terms.forEach(t => buildDiscCard(t, vs, container));
+}
+
+function buildDiscCard(t, vs, container) {
+  const disc = discMap[t.id];
+  const def  = palDefs().find(d => d.key === t.key) || { html: t.coefSym };
+  const id   = t.id;
+
+  const card = document.createElement('div');
+  card.className = 'term-disc-row';
+  card.id = `dc-${id}`;
+
+  const timeOpts = [['n','n'],['n+1','n+1'],['n-1','n−1']];
+  const timeBtns = timeOpts.map(([v,l]) =>
+    `<button class="tt-btn${disc.time===v?' on':''}" onclick="setTime(${id},'${v}',this)">${l}</button>`).join('');
+
+  const dirBtns = vs.length > 1
+    ? `<select class="dir-badge" onchange="setDir(${id},this.value)">${vs.map(v=>`<option value="${v}"${v===disc.dir?' selected':''}>${v}</option>`).join('')}</select>`
+    : '';
+
+  const stPts = [-3,-2,-1,0,1,2,3];
+  const stHTML = stPts.map(p => {
+    const on = disc.stencil.includes(p) ? ' on' : '';
+    return `<div class="spt${on}" onclick="togPt(${id},${p},this)">${p>0?'+'+p:p}</div>`;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="tdr-head">
+      <div class="tdr-math">${t.sign==='-'?'−':'+'}\u202f${def.html}</div>
+      <div class="time-toggle">${timeBtns}</div>
+      ${dirBtns}
+    </div>
+    <div class="tdr-body">
+      <div>
+        <div class="tdr-label">Stencil points</div>
+        <div class="stencil-pts" id="stpts-${id}">${stHTML}</div>
+        <div class="coef-row">
+          <span class="coef-label">Coefficient</span>
+          <input class="coef-inp" id="coefinp-${id}" value="${disc.coefSym}"
+            oninput="setCoef(${id},this.value)">
+        </div>
+      </div>
+      <div>
+        <div class="tdr-label">Resulting discretisation</div>
+        <div class="stencil-preview" id="prev-${id}">
+          <span class="sp-label">discrete approximation</span>
+          <span id="prevcontent-${id}">${stencilPreviewHTML(id)}</span>
+        </div>
+      </div>
+    </div>`;
+  container.appendChild(card);
+}
+
+function setTime(id, val, btn) {
+  if (discMap[id]) discMap[id].time = val;
+  const card = document.getElementById(`dc-${id}`);
+  card.querySelectorAll('.tt-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  updatePreview(id);
+}
+
+function setDir(id, val) {
+  if (discMap[id]) discMap[id].dir = val;
+  const t = terms.find(t => t.id === id); if (t) t.varDir = val;
+  updatePreview(id);
+}
+
+function setCoef(id, val) {
+  if (discMap[id]) discMap[id].coefSym = val;
+  updatePreview(id);
+}
+
+function togPt(id, pt, el) {
+  const d = discMap[id]; if (!d) return;
+  const idx = d.stencil.indexOf(pt);
+  if (idx===-1) { d.stencil.push(pt); d.stencil.sort((a,b)=>a-b); el.classList.add('on'); }
+  else { d.stencil.splice(idx,1); el.classList.remove('on'); }
+  updatePreview(id);
+}
+
+function updatePreview(id) {
+  const el = document.getElementById(`prevcontent-${id}`);
+  if (el) el.innerHTML = stencilPreviewHTML(id);
+}
+
+function getVars() {
+  const nd = +document.getElementById('ndim').value;
+  return [
+    document.getElementById('vx').value||'x',
+    nd>=2 ? document.getElementById('vy').value||'y' : null,
+    nd>=3 ? document.getElementById('vz').value||'z' : null
+  ].filter(Boolean);
+}
+
+// ════════════════════════════════════════════
+// RUN
+// ════════════════════════════════════════════
+async function runAnalysis() {
+  if (!pyodide) return;
+  const err = document.getElementById('errmsg');
+  err.style.display = 'none';
+
+  for (const t of terms) {
+    const d = discMap[t.id];
+    if (!d || d.stencil.length < 2) { showErr(`"${t.coefSym}·…": select ≥ 2 stencil points.`); return; }
+    if (t.order > 0 && t.order >= d.stencil.length) { showErr(`Derivative order (${t.order}) must be < stencil size (${d.stencil.length}).`); return; }
+  }
+
+  setBusy(true);
+  const dep   = document.getElementById('dep').value || 'u';
+  const vs    = getVars();
+  const nt    = +document.getElementById('nterms').value;
+  const coefSyms = [...new Set(terms.map(t => discMap[t.id]?.coefSym || t.coefSym).filter(Boolean))];
+
+  const rhsParts = terms.map(t => {
+    const d   = discMap[t.id];
+    const sgn = t.sign;
+    const coef= d?.coefSym || t.coefSym;
+    const dir = d?.dir || t.varDir || vs[0];
+    const time= d?.time || 'n';
+    const st  = JSON.stringify(d?.stencil || [-1,0]);
+    return `(${sgn}${coef}*de.expr(order=${t.order},directionName='${dir}',time=${time},stencil=${st}))`;
+  });
+
+  const code = `
+_dep='${dep}';_indep=${JSON.stringify(vs)};_nt=${nt}
+${coefSyms.map(s=>`${s}=sp.Symbol('${s}')`).join('\n')}
+de=DifferentialEquation(dependentVarName=_dep, independentVarsNames=_indep)
+de.set_rhs(${rhsParts.join('+')})
+de.generate_modified_equation(nterms=_nt)
+_rme=de.latex_modified_equation();_ramp=de.latex_amp_factor();_rc=de.me_coefficients_latex()
+print("DONE")
+`;
+
+  try {
+    await pyodide.runPythonAsync(code);
+    const meLat  = pyodide.globals.get('_rme');
+    const ampLat = pyodide.globals.get('_ramp');
+    const cm     = pyodide.globals.get('_rc').toJs();
+    showResults(meLat, ampLat, cm);
+    setStat('ok','Done ✓');
+  } catch(e) {
+    showErr(e.message || String(e));
+    setStat('err','Error');
+  }
+  setBusy(false);
+}
+
+function setBusy(b) {
+  document.getElementById('genbtn').disabled = b;
+  document.getElementById('genspin').style.display = b ? 'block' : 'none';
+  document.getElementById('gentxt').textContent = b ? 'Computing…' : 'Generate Modified Equation';
+}
+
+function showErr(msg) {
+  const e = document.getElementById('errmsg');
+  e.textContent = msg; e.style.display = 'block';
+}
+
+function showResults(meLat, ampLat, cm) {
+  document.getElementById('results').classList.add('show');
+
+  doMath('d-me', meLat);
+  doMath('d-amp', ampLat);
+
+  const keys = [...cm.keys()];
+  const a2 = keys.find(k=>[...k].reduce((s,c)=>s+parseInt(c),0)===2);
+  const a3 = keys.find(k=>[...k].reduce((s,c)=>s+parseInt(c),0)===3);
+  document.getElementById('d-char').innerHTML = [
+    ccard('Leading term', keys[0] ? `a<sub>${keys[0]}</sub>` : '—'),
+    ccard('ME terms', `${keys.length}`),
+    ccard('Diffusion', a2 ? `a<sub>${a2}</sub><span class="char-tag ct-diff">2nd order</span>` : 'absent'),
+    ccard('Dispersion', a3 ? `a<sub>${a3}</sub><span class="char-tag ct-disp">3rd order</span>` : 'absent'),
+  ].join('');
+
+  const tb = document.getElementById('ctbody'); tb.innerHTML = '';
+  for (const [key,val] of cm) {
+    const N = [...key].reduce((s,c)=>s+parseInt(c),0);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><span class="order-badge">${N}</span></td>
+      <td style="font-family:var(--mono);color:var(--ink3);font-size:12px">a<sub>${key}</sub></td>
+      <td style="font-size:13px">\\(\\displaystyle ${val}\\)</td>`;
+    tb.appendChild(tr);
+  }
+  if (window.MathJax) MathJax.typesetPromise([tb]);
+
+  document.getElementById('lat-me').textContent  = meLat;
+  document.getElementById('lat-amp').textContent = ampLat;
+
+  // scroll to results
+  document.getElementById('results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function ccard(l,v) {
+  return `<div class="char-card"><div class="char-card-label">${l}</div><div class="char-card-val">${v}</div></div>`;
+}
+
+function doMath(id, lat) {
+  const el = document.getElementById(id);
+  el.innerHTML = `\\(\\displaystyle ${lat}\\)`;
+  if (window.MathJax) MathJax.typesetPromise([el]);
+}
+
+function cp(id) {
+  navigator.clipboard.writeText(document.getElementById(id).textContent).then(() => {
+    const btn = event.target; btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+// ════════════════════════════════════════════
+// EQUATION FONT SIZE
+// ════════════════════════════════════════════
+function updateEqFontSize(val) {
+  document.getElementById('eq-font-val').textContent = val + '%';
+  // Apply to both math containers via CSS variable on the page root
+  document.querySelectorAll('.res-eq-math').forEach(el => {
+    el.style.setProperty('--eq-font-size', val + '%');
+  });
+  // Re-typeset so MathJax picks up the new size
+  if (window.MathJax) {
+    MathJax.typesetClear(document.querySelectorAll('.res-eq-math'));
+    MathJax.typesetPromise([...document.querySelectorAll('.res-eq-math')]);
+  }
+}
+
+// ════════════════════════════════════════════
+// EQUATION FONT SIZE
+// ════════════════════════════════════════════
+function updateEqFontSize(val) {
+  document.getElementById('eq-font-val').textContent = val + '%';
+  document.querySelectorAll('.res-eq-math').forEach(el => {
+    el.style.setProperty('--eq-font-size', val + '%');
+  });
+  if (window.MathJax) {
+    MathJax.typesetClear([...document.querySelectorAll('.res-eq-math')]);
+    MathJax.typesetPromise([...document.querySelectorAll('.res-eq-math')]);
+  }
+}
+
+// ════════════════════════════════════════════
+// STATUS / LOADER
+// ════════════════════════════════════════════
+function setStat(cls, txt) {
+  const b = document.getElementById('pypill'); b.className='py-pill '+cls;
+  document.getElementById('pytxt').textContent = txt;
+}
+function ldSet(pct, msg) {
+  document.getElementById('lf').style.width = pct+'%';
+  document.getElementById('ln').textContent = msg;
+}
+
+// ════════════════════════════════════════════
+// PYODIDE BOOT
+// ════════════════════════════════════════════
+async function boot() {
+  setStat('busy','Loading…'); ldSet(8,'Downloading Pyodide…');
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/pyodide/v0.27.0/full/pyodide.js';
+  document.head.appendChild(s);
+  await new Promise(r => s.onload = r);
+  ldSet(38,'Starting Python interpreter…');
+  pyodide = await loadPyodide();
+  ldSet(62,'Loading SymPy (~20s first time)…');
+  await pyodide.loadPackage('sympy');
+  ldSet(88,'Initialising engine…');
+  await pyodide.runPythonAsync(ENGINE);
+  ldSet(100,'Ready!');
+  await new Promise(r => setTimeout(r,450));
+  document.getElementById('ld').classList.add('out');
+  document.getElementById('genbtn').disabled = false;
+  setStat('ok','Python ready');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  buildPalette();
+  boot().catch(e => { setStat('err','Failed'); ldSet(100,'Error: '+e.message); });
+});
+</script>
+</body>
+</html>
