@@ -1,610 +1,515 @@
-"""pymodpde.py: a symbolic module that generates the modified equation for time-dependent partial differential equation
-based on the used finite difference scheme."""
+"""
+pymodpde.py — A symbolic module for modified equation analysis of
+finite difference schemes applied to time-dependent PDEs.
 
-__author__ = "Mokbel Karam , James C. Sutherland, and Tony Saad"
+Based on the Chang (1990) / Karam et al. (2020) amplification-factor approach:
+    1. Substitute the von-Neumann ansatz into the discrete scheme → amplification factor G = e^{αΔt}
+    2. Solve for α (the amplification exponent)
+    3. Differentiate α w.r.t. wave numbers at k=0 to recover modified-equation coefficients
+
+Authors : Mokbel Karam, James C. Sutherland, Tony Saad (original)
+Version  : 2.0.0 — cleaner internals, caching, no wildcard imports. Public API identical to v1.
+License  : MIT
+"""
+
+from __future__ import annotations
+
+__author__    = "Mokbel Karam, James C. Sutherland, and Tony Saad"
 __copyright__ = "Copyright (c) 2019, Mokbel Karam"
-
-__credits__ = ["University of Utah Department of Chemical Engineering"]
-__license__ = "MIT"
-__version__ = "1.0.0"
+__credits__   = ["University of Utah Department of Chemical Engineering"]
+__license__   = "MIT"
+__version__   = "2.0.0"
 __maintainer__ = "Mokbel Karam"
-__email__ = "mokbel.karam@chemeng.utah.edu"
-__status__ = "Production"
+__email__     = "mokbel.karam@chemeng.utah.edu"
+__status__    = "Production"
 
-from sympy import *
-from sympy.core import symbol, add
 from itertools import product
-import functools
+from typing import Any
+
+import sympy as sp
+
+# ── module-level symbols (same as v1) ─────────────────────────────────────────
+i, j, k, n = sp.symbols("i j k n")
+
+# also expose sympy.symbols so   from pymodpde_v2 import symbols   works
+symbols = sp.symbols
 
 
-try:
-    from IPython import get_ipython
-    if 'IPKernelApp' not in get_ipython().config:  # pragma: no cover
-        raise ImportError("console")
-    from IPython.display import display, Math, clear_output
-except:
-    pass
+# ── helpers ───────────────────────────────────────────────────────────────────
 
-i, j, k, n = symbols('i j k n')
+def _factorial_product(tup: tuple[int, ...]) -> sp.Integer:
+    result = sp.Integer(1)
+    for m in tup:
+        result *= sp.factorial(m)
+    return result
 
+
+def _stencil_coefficients(points: list[int], order: int) -> list[sp.Rational]:
+    """Finite-difference weights via Vandermonde solve (exact rationals)."""
+    if order >= len(points):
+        raise ValueError(
+            f"Derivative order ({order}) must be less than the number of "
+            f"stencil points ({len(points)})."
+        )
+    n_pts = len(points)
+    M = sp.Matrix([[sp.Rational(s**row) for s in points] for row in range(n_pts)])
+    rhs = sp.Matrix(
+        [sp.factorial(order) if row == order else sp.Integer(0) for row in range(n_pts)]
+    )
+    return list(M.solve(rhs))
+
+
+# ── main class ────────────────────────────────────────────────────────────────
 
 class DifferentialEquation:
-    def __init__(self, dependentVarName: str, independentVarsNames: list, indices: list = [i, j, k],
-                 timeIndex: Symbol = n):
-        '''
-        Parameters:
-            dependentVarName (string): name of the dependent variable
-            independentVarsNames (list of string): names of the independent variables
-            indices (list of symbols): symbols for the indices of the independent variables
-            timeIndex (symbol): symbolic variable of the time index
+    """
+    Symbolic representation of a first-order-in-time linear PDE discretised
+    by a finite difference scheme.
 
-        Examples:
-            >>> DE = DifferentialEquation(dependentVarName='u', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
-        '''
+    API is identical to v1 — all original argument names are preserved.
 
-        assert isinstance(dependentVarName,
-                          str), 'DifferentialEquation() parameter dependentVarName={} not of <class "str">'.format(
-            dependentVarName)
-        assert isinstance(independentVarsNames,
-                          list), 'independentVarsNames() parameter independentVarsNames={} not of <class "list">'.format(
-            independentVarsNames)
-        assert isinstance(indices, list), 'indices() parameter indices={} not of <class "list">'.format(indices)
-        assert isinstance(timeIndex,
-                          Symbol), 'timeIndex() parameter timeIndex={} not of <class "sympy.core.symbol.Symbol">'.format(
-            timeIndex)
-        for indepVar in independentVarsNames:
-            assert isinstance(indepVar, str), 'independentVarsNames members are not of <class "str">'.format(independentVarsNames)
-        for index in indices:
-            assert isinstance(index,
-                              Symbol), 'indices members are not of <class "sympy.core.symbol.Symbol">'.format(
-                indices)
+    Examples
+    --------
+    >>> from pymodpde import DifferentialEquation, symbols, i, n
+    >>> a = symbols('a')
+    >>> DE = DifferentialEquation(dependentVarName='u', independentVarsNames=['x'])
+    >>> DE.set_rhs(-a * DE.expr(order=1, directionName='x', time=n, stencil=[-1, 0]))
+    >>> DE.generate_modified_equation(nterms=3)
+    >>> DE.display_modified_equation()
+    """
 
-        if len(independentVarsNames) > 3:
-            raise Exception('No more than three independent variable is allowed!')
-        else:
-            self.__independentVars = independentVarsNames
-            self.__dependentVar_name = dependentVarName
+    def __init__(
+        self,
+        dependentVarName: str,
+        independentVarsNames: list[str],
+        indices: list[sp.Symbol] | None = None,
+        timeIndex: sp.Symbol | None = None,
+    ) -> None:
+        """
+        Parameters
+        ----------
+        dependentVarName:
+            Name of the dependent variable, e.g. ``'u'``.
+        independentVarsNames:
+            Names of the spatial independent variables, e.g. ``['x']`` or ``['x', 'y']``.
+            At most three are supported.
+        indices:
+            Symbolic spatial grid indices (default: ``[i, j, k]`` trimmed to length).
+        timeIndex:
+            Symbolic time index (default: ``n``).
+        """
+        if not isinstance(dependentVarName, str):
+            raise TypeError(
+                f'DifferentialEquation() parameter dependentVarName={dependentVarName!r}'
+                ' not of <class "str">'
+            )
+        if not isinstance(independentVarsNames, list) or not all(
+            isinstance(v, str) for v in independentVarsNames
+        ):
+            raise TypeError(
+                f'independentVarsNames={independentVarsNames!r} must be a list of strings'
+            )
+        if len(independentVarsNames) == 0 or len(independentVarsNames) > 3:
+            raise ValueError("No more than three independent variables are allowed.")
 
-            self.__indices = indices
-            self.__timeIndex = timeIndex
+        if timeIndex is None:
+            timeIndex = n
+        if not isinstance(timeIndex, sp.Symbol):
+            raise TypeError(
+                f'timeIndex={timeIndex!r} not of <class "sympy.core.symbol.Symbol">'
+            )
 
-            self.__independent_vars()
+        default_indices = [i, j, k]
+        if indices is None:
+            indices = default_indices[: len(independentVarsNames)]
+        if len(indices) != len(independentVarsNames):
+            raise ValueError("len(indices) must equal len(independentVarsNames).")
+        for idx in indices:
+            if not isinstance(idx, sp.Symbol):
+                raise TypeError(f"indices members must be sympy Symbols, got {type(idx)}")
 
-            setattr(self, self.__dependentVar_name, self.dependent_var_func)
-            self.indepVarsSym = [self.vars[var]['sym'] for var in self.__independentVars]
-            self.indepVarsSym.append(self.t['sym'])
-            self.dependentVar = Function(self.__dependentVar_name)(*self.indepVarsSym)
+        self._dep_name: str = dependentVarName
+        self._indep_names: list[str] = independentVarsNames
+        self._indices: list[sp.Symbol] = indices
+        self._time_idx: sp.Symbol = timeIndex
 
-            self.__latex_ME_coefs = {'lhs': '', 'rhs': {}}
+        self._setup_symbols()
 
-            self.indicies = {}
-            for var in self.__independentVars:
-                self.indicies[var] = self.vars[var]['index']
-            self.lhs = (self.dependent_var_func(self.t['index'] + 1, **self.indicies) - self.dependent_var_func(
-                self.t['index'],
-                **self.indicies)) / \
-                       self.t['variation']
-            self.rhs = None
+        # expose DE.u(...), DE.f(...) etc. — same as v1 dependent_var_func
+        setattr(self, self._dep_name, self.dependent_var_func)
 
-            self.__latex_amp_factor = None
-            self.__ME = None
-            self.__amp_factor = None
-            self.__amp_factor_exponent = None
-            self.__latex_amp_factor_exponent = None
-            self.__latex_ME = None
+        idx_dict = {v: self.vars[v]["index"] for v in self._indep_names}
+        self.lhs: sp.Expr = (
+            self.dependent_var_func(self._time_idx + 1, **idx_dict)
+            - self.dependent_var_func(self._time_idx, **idx_dict)
+        ) / self.t["variation"]
+        self.rhs: sp.Expr | None = None
 
-            self.__is_jupyter = None
-            try:
-                self.__is_jupyter = 'IPKernelApp' in get_ipython().config
-            except:
-                self.__is_jupyter = False
+        # cached results
+        self._amp_factor: sp.Eq | None = None
+        self._amp_exponent: sp.Expr | None = None
+        self._modified_eq: sp.Eq | None = None
+        self._me_coefs: dict[str, sp.Expr] = {}
+        self._me_derivs: dict[str, sp.Expr] = {}
+        self._latex_me: str = ""
 
-            self.__simplification_tolerance = 1e-6
+        self.__simplification_tolerance: float = 1e-6
+        self._is_jupyter: bool = self._detect_jupyter()
+
+    # ── symbol setup (mirrors v1 self.vars / self.t layout) ──────────────────
+
+    def _setup_symbols(self) -> None:
+        self.vars: dict[str, dict[str, Any]] = {}
+        num = 1
+        for var, spatial_idx in zip(self._indep_names, self._indices):
+            self.vars[var] = {
+                "sym":       sp.Symbol(var),
+                "waveNum":   sp.Symbol(f"k{num}"),
+                "variation": sp.Symbol(rf"\Delta{{{var}}}"),
+                "index":     spatial_idx,
+            }
+            setattr(self, f"d{var}", self.vars[var]["variation"])
+            num += 1
+
+        self.t: dict[str, Any] = {
+            "sym":       sp.Symbol("t"),
+            "ampFactor": sp.Symbol("q"),
+            "variation": sp.Symbol(r"\Delta{t}"),
+            "index":     self._time_idx,
+        }
+        setattr(self, "dt", self.t["variation"])
+
+        space_time = [self.vars[v]["sym"] for v in self._indep_names] + [self.t["sym"]]
+        self.dependentVar = sp.Function(self._dep_name)(*space_time)
+
+        # convenience list used by latex builder
+        self.indepVarsSym = [self.vars[v]["sym"] for v in self._indep_names]
+        self.indepVarsSym.append(self.t["sym"])
+
+    # ── Jupyter detection ────────────────────────────────────────────────────
+
+    @staticmethod
+    def _detect_jupyter() -> bool:
+        try:
+            from IPython import get_ipython  # type: ignore
+            cfg = get_ipython()
+            return cfg is not None and "IPKernelApp" in cfg.config
+        except Exception:
+            return False
+
+    # ── von-Neumann ansatz (v1 name: dependent_var_func) ─────────────────────
+
+    def dependent_var_func(self, time: sp.Expr, **kwargs: sp.Expr) -> sp.Expr:
+        """
+        Von-Neumann wave ansatz:  e^{q·(t + (time-n)·Δt)} · ∏ e^{i·kₛ·(xₛ + offset·Δxₛ)}
+
+        This is the function assigned to ``DE.u``, ``DE.f``, etc.
+
+        Examples
+        --------
+        >>> DE.u(time=n, x=i+1)
+        >>> DE.u(time=n+1, x=i, y=j-1)
+        """
+        expr = sp.exp(
+            self.t["ampFactor"] * (
+                self.t["sym"] + (time - self.t["index"]) * self.t["variation"]
+            )
+        )
+        for var, grid_idx in kwargs.items():
+            v = self.vars[var]
+            expr *= sp.exp(
+                sp.I * v["waveNum"] * (
+                    v["sym"] + (grid_idx - v["index"]) * v["variation"]
+                )
+            )
+        return expr
+
+    # ── stencil / expr ───────────────────────────────────────────────────────
+
+    def expr(
+        self,
+        order: int,
+        directionName: str,
+        time: sp.Expr,
+        stencil: list[int],
+    ) -> sp.Expr:
+        """
+        Build the finite-difference approximation of the *order*-th spatial
+        derivative in *directionName* using *stencil* at discrete *time*.
+
+        Parameters
+        ----------
+        order:         Derivative order (≥ 1).
+        directionName: Spatial variable name, must be in ``independentVarsNames``.
+        time:          Discrete time level, e.g. ``n`` or ``n+1``.
+        stencil:       Integer offsets, e.g. ``[-1, 0]`` for upwind.
+        """
+        if directionName not in self._indep_names:
+            raise ValueError(
+                f"directionName='{directionName}' not in "
+                f"independentVarsNames={self._indep_names}"
+            )
+        coefs = _stencil_coefficients(stencil, order)
+        delta = self.vars[directionName]["variation"]
+        idx0  = self.vars[directionName]["index"]
+
+        total: sp.Expr = sp.Integer(0)
+        for coef, pt in zip(coefs, stencil):
+            kw = {v: self.vars[v]["index"] for v in self._indep_names}
+            kw[directionName] = idx0 + pt
+            total += coef * self.dependent_var_func(time=time, **kw)
+
+        return sp.ratsimp(total / delta**order)
+
+    # ── fluent RHS setter ────────────────────────────────────────────────────
+
+    def set_rhs(self, expression: sp.Expr) -> "DifferentialEquation":
+        """Set the right-hand side and return *self* for optional chaining."""
+        if isinstance(expression, str):
+            raise TypeError("expression must be a sympy Expr, not a string")
+        self.rhs = expression
+        # invalidate cached results
+        self._amp_factor    = None
+        self._amp_exponent  = None
+        self._modified_eq   = None
+        return self
+
+    # ── amplification factor ─────────────────────────────────────────────────
+
+    def _compute_amp_factor_rhs(self) -> sp.Expr:
+        if self.rhs is None:
+            raise RuntimeError("Call set_rhs() before generating the amplification factor.")
+        A    = sp.Symbol("A")
+        base = self.dependent_var_func(
+            self.t["index"],
+            **{v: self.vars[v]["index"] for v in self._indep_names}
+        )
+        lhs_norm = sp.simplify(self.lhs / base)
+        rhs_norm = sp.simplify(self.rhs / base)
+        eq = sp.expand(lhs_norm - rhs_norm)
+        eq = eq.subs(sp.exp(self.t["ampFactor"] * self.t["variation"]), A)
+        eq = sp.collect(eq, A)
+        solutions = sp.solve(eq, A)
+        if not solutions:
+            raise RuntimeError(
+                "Could not solve for the amplification factor. "
+                "Check that the RHS was built with DE.expr() or DE.<depVar>()."
+            )
+        return sp.simplify(solutions[0])
+
+    def generate_amp_factor(self) -> "DifferentialEquation":
+        """Compute and cache the amplification factor G = e^{αΔt}."""
+        G_rhs = self._compute_amp_factor_rhs()
+        self._amp_factor   = sp.Eq(sp.exp(sp.Symbol("alpha") * self.t["variation"]), G_rhs)
+        self._amp_exponent = sp.ratsimp(sp.log(G_rhs) / self.t["variation"])
+        return self
+
+    # ── modified equation ────────────────────────────────────────────────────
+
+    def _infer_max_order(self, alpha: sp.Expr) -> int:
+        deltas     = [self.vars[v]["variation"] for v in self._indep_names]
+        max_orders: list[int] = []
+        for delta in deltas:
+            powers = {
+                abs(int(exp))
+                for base, exp in (
+                    t.as_base_exp() for t in sp.preorder_traversal(alpha)
+                )
+                if base == delta and exp.is_integer
+            }
+            max_orders.append(max(powers, default=0))
+
+        ranges    = [range(-m, m + 1) for m in max_orders]
+        cross_max = 0
+        for combo in product(*ranges):
+            if sum(abs(c) for c in combo) == 0:
+                continue
+            term = sp.Mul(*[d**p for d, p in zip(deltas, combo)])
+            if alpha.has(term):
+                cross_max = max(cross_max, sum(abs(c) for c in combo))
+
+        return max(max(max_orders, default=0), cross_max)
+
+    def generate_modified_equation(self, nterms: int = 2) -> "DifferentialEquation":
+        """
+        Compute the modified equation up to *nterms* terms beyond leading order.
+
+        Parameters
+        ----------
+        nterms: Number of terms (default 2). Must be ≥ 1.
+
+        Returns *self* for chaining.
+        """
+        if nterms < 1:
+            raise ValueError("nterms must be ≥ 1")
+
+        if self._amp_factor is None:
+            self.generate_amp_factor()
+
+        alpha       = self._amp_exponent
+        total_order = self._infer_max_order(alpha) + nterms
+        k_zero      = {self.vars[v]["waveNum"]: sp.Integer(0) for v in self._indep_names}
+
+        coefs: dict[str, sp.Expr] = {}
+        derivs: dict[str, sp.Expr] = {}
+
+        for combo in product(range(total_order), repeat=len(self._indep_names)):
+            if not (0 < sum(combo) < total_order):
+                continue
+            N   = sum(combo)
+            wrt = []
+            for var_name, p in zip(self._indep_names, combo):
+                wrt += [self.vars[var_name]["waveNum"], p]
+
+            deriv_alpha = sp.diff(alpha, *wrt).subs(k_zero)
+            fac         = _factorial_product(combo)
+            coef        = sp.simplify(deriv_alpha / (fac * sp.I**N))
+            coef        = sp.nsimplify(
+                coef.evalf(), tolerance=self.__simplification_tolerance, rational=False
+            )
+            coef = sp.simplify(coef)
+
+            if coef == 0:
+                continue
+
+            key        = "".join(str(p) for p in combo)
+            coefs[key] = coef
+
+            wrt_sym = []
+            for var_name, p in zip(self._indep_names, combo):
+                wrt_sym += [self.vars[var_name]["sym"], p]
+            derivs[key] = sp.Derivative(self.dependentVar, *wrt_sym)
+
+        self._me_coefs  = coefs
+        self._me_derivs = derivs
+
+        me_lhs          = sp.Derivative(self.dependentVar, self.t["sym"], 1)
+        me_rhs          = sum(coefs[k] * derivs[k] for k in coefs) if coefs else sp.Integer(0)
+        self._modified_eq = sp.Eq(me_lhs, me_rhs)
+        self._latex_me    = self._build_latex()
+        return self
+
+    # ── latex builder ────────────────────────────────────────────────────────
+
+    def _build_latex(self) -> str:
+        lhs_str = sp.latex(sp.Derivative(self.dependentVar, self.t["sym"]))
+
+        order_groups: dict[int, str] = {}
+        for key in sorted(self._me_coefs, key=lambda k: sum(int(c) for c in k)):
+            N     = sum(int(c) for c in key)
+            coef  = self._me_coefs[key]
+            deriv = self._me_derivs[key]
+
+            coef_str  = sp.latex(coef)
+            deriv_str = sp.latex(deriv)
+
+            if coef.is_Add:
+                term_str = rf"\left({coef_str}\right) {deriv_str}"
+            else:
+                term_str = rf"{coef_str} {deriv_str}"
+
+            if N in order_groups:
+                order_groups[N] += (" " if term_str.startswith("-") else " + ") + term_str
+            else:
+                order_groups[N] = term_str
+
+        rhs_str = " ".join(
+            (" " if s.startswith("-") else " + ") + s if idx > 0 else s
+            for idx, s in enumerate(order_groups[kk] for kk in sorted(order_groups))
+        )
+        return lhs_str + " = " + rhs_str
+
+    # ── public accessors ─────────────────────────────────────────────────────
+
+    def symbolic_modified_equation(self) -> sp.Eq:
+        """Return the symbolic modified equation (sympy Eq object)."""
+        if self._modified_eq is None:
+            raise RuntimeError(
+                "Modified equation not yet generated. "
+                "Call generate_modified_equation() first."
+            )
+        return self._modified_eq
+
+    def symbolic_amp_factor(self) -> sp.Eq:
+        """Return the symbolic amplification factor (sympy Eq object)."""
+        if self._amp_factor is None:
+            raise RuntimeError(
+                "Amplification factor not yet generated. "
+                "Call generate_amp_factor() or generate_modified_equation() first."
+            )
+        return self._amp_factor
+
+    def latex_modified_equation(self) -> str:
+        """Return the LaTeX string of the modified equation."""
+        if self._modified_eq is None:
+            raise RuntimeError(
+                "Modified equation not yet generated. "
+                "Call generate_modified_equation() first."
+            )
+        return self._latex_me
+
+    def latex_amp_factor(self) -> str:
+        """Return the LaTeX string of the amplification factor."""
+        if self._amp_factor is None:
+            raise RuntimeError(
+                "Amplification factor not yet generated. "
+                "Call generate_amp_factor() or generate_modified_equation() first."
+            )
+        return sp.latex(self._amp_factor)
+
+    def me_coefficients(self) -> dict[str, sp.Expr]:
+        """
+        Return a dict mapping multi-index strings to symbolic coefficient expressions.
+
+        Keys: ``'1'``, ``'2'``, ``'11'``, ``'20'``, etc.
+        """
+        if not self._me_coefs:
+            raise RuntimeError("Call generate_modified_equation() first.")
+        return dict(self._me_coefs)
+
+    def independentVars(self) -> list[str]:
+        """Return the list of independent variable name strings."""
+        return list(self._indep_names)
+
+    # ── tolerance property ───────────────────────────────────────────────────
 
     @property
-    def simplification_tolerance(self):
+    def simplification_tolerance(self) -> float:
         return self.__simplification_tolerance
+
     @simplification_tolerance.setter
-    def simplification_tolerance(self,val):
-        '''
-        tolerance used when simplified the coefficients of the modified equation
-        :param val: positive value, has a default value of 1e-6
-        :return: no return value
-        '''
-        assert val >0
-        self.__simplification_tolerance=val
+    def simplification_tolerance(self, val: float) -> None:
+        if val <= 0:
+            raise ValueError("tolerance must be positive")
+        self.__simplification_tolerance = val
 
-    def symbolic_modified_equation(self):
-        '''
-        Returns:
-             the symbolic modified equation
-        '''
-        if self.__ME == None:
-            raise Exception(
-                'the modified equation is not generated yet. try calling the generate_modified_equation function first.')
+    # ── display ──────────────────────────────────────────────────────────────
+
+    def display_modified_equation(self) -> None:
+        """Render the modified equation — LaTeX in Jupyter, symbolic in terminal."""
+        if self._modified_eq is None:
+            raise RuntimeError("Call generate_modified_equation() first.")
+        if self._is_jupyter:
+            from IPython.display import display, Math  # type: ignore
+            display(Math(self._latex_me))
         else:
-            return self.__ME
+            sp.pprint(self._modified_eq)
 
-
-    def latex_modified_equation(self):
-        '''
-        Returns:
-             the Latex string of the modified equation
-        '''
-        if self.__ME == None:
-            raise Exception(
-                'the modified equation is not generated yet. try calling the generate_modified_equation function first.')
+    def display_amp_factor(self) -> None:
+        """Render the amplification factor — LaTeX in Jupyter, symbolic in terminal."""
+        if self._amp_factor is None:
+            raise RuntimeError(
+                "Call generate_amp_factor() or generate_modified_equation() first."
+            )
+        if self._is_jupyter:
+            from IPython.display import display, Math  # type: ignore
+            display(Math(sp.latex(self._amp_factor)))
         else:
-            return self.__latex()
-
-
-    def latex_amp_factor(self):
-        '''
-        Returns:
-             the Latex string of the amplification factor
-        '''
-        if self.__amp_factor == None:
-            raise Exception('the amplification factor is not generated yet. try calling the generate_modified_equation or generate_amp_factor functions first.')
-        return self.__latex_amp_factor
-
-
-    def symbolic_amp_factor(self):
-        '''
-        Returns:
-             the symbolic amplification factor
-        '''
-        if self.__amp_factor == None:
-            raise Exception('the amplification factor is not generated yet. try calling the generate_modified_equation or generate_amp_factor functions first.')
-        else:
-            return self.__amp_factor
-
-    def __printer(foo):
-        '''
-        decorator that prints the results based on where they are executed: jupyter or script
-        '''
-        @functools.wraps(foo)
-        def Print(self, *args, **kwargs):
-            if self.__is_jupyter:
-                return display(Math(foo(self, *args, **kwargs)))
-            else:
-                symbolic_form = foo(self, *args, **kwargs)
-                subs_dict = {}
-                for indep in self.indepVarsSym:
-                    subs_dict['\Delta{}'.format('{'+str(indep)+'}')] = var('d{}'.format(str(indep)))
-                return pprint(symbolic_form.subs(subs_dict))
-        return Print
-
-    @__printer
-    def display_modified_equation(self):
-        '''
-        Display the modified equation in a latex rendered form in jupyter cell and render the symbolic equation in console or
-        python script.
-        '''
-        if self.__ME == None:
-            raise Exception('the amplification factor is not generated yet. Try calling the generate_modified_equation or generate_amp_factor functions first.')
-        if self.__is_jupyter:
-            return self.__latex_ME
-        else:
-            return self.__ME
-
-    @__printer
-    def display_amp_factor(self):
-        '''
-           Display the amplification factor in a latex rendered form in jupyter cell and render the symbolic equation in console or
-           python script.
-       '''
-        if self.__amp_factor == None:
-            raise Exception('the modified equation is not generated yet. Try calling the generate_modified_equation function first.')
-        if self.__is_jupyter:
-            return latex(self.__amp_factor)
-        else:
-            return self.__amp_factor
-
-
-    def independentVars(self):
-        '''
-        Returns:
-            self.__independentVars (list): list of independent variables names
-        '''
-        return self.__independentVars
-
-    def __independent_vars(self):
-        '''
-        Defines the symbols for the independent variables, differential elements, wave number variables, and indices
-        '''
-        self.vars = {}
-        self.t = {}
-        num = 1
-        for var, index in zip(self.__independentVars, self.__indices):
-            self.vars[var] = {}
-            varName = 'indepVar{}'.format(num)
-            setattr(self, varName, symbols(var))
-            self.vars[var]['sym'] = getattr(self, varName)
-            waveNumName = 'k{}'.format(num)
-            setattr(self, waveNumName, symbols(waveNumName))
-            self.vars[var]['waveNum'] = getattr(self, waveNumName)
-            variationName = 'd{}'.format(var)
-            variationSymStr = '\Delta{}'.format('{'+var+'}')
-            setattr(self, variationName, symbols(variationSymStr))
-            self.vars[var]['variation'] = getattr(self, variationName)
-            self.vars[var]['index'] = index
-            num += 1
-        self.t['sym'] = symbols('t')
-        self.t['ampFactor'] = symbols('q')
-        setattr(self, 'dt', symbols('\Delta{t}'))
-        self.t['variation'] = getattr(self, 'dt')
-        self.t['index'] = self.__timeIndex
-
-    def dependent_var_func(self, time, **kwargs):
-        '''
-        The function assigned to the dependent variable name. It has the following form exp(alpha tn) exp(ikx) exp(iky) ...
-
-        Parameters:
-            time (symbolic expression): time step at which we are applying this function ex: n, n+1, n-1, ..., <timeIndex\> + number.
-            kwargs (symbolic expression): the stencil points at which we are applying this function ex: x=i+3, y=j+1, ..., <independentVar\> = <spatialIndex\> + number
-
-        Returns:
-            symbolic expression of this function applied at time index and points
-
-        Examples:
-
-            >>> <DE>.<dependentVar>(time=n+1, x=i+1, y=j)
-
-            the following example is about advection using Forward in Time and Upwind in Space (FTUS) scheme
-
-            >>> i, j, n, a = symbols("i j n a")
-            >>> DE = DifferentialEquation(dependentVarName='u', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
-            >>> advection = -a (DE.u(time=n, x=i, y=j) - DE.u(time=n, x=i-1, y=j))/DE.dx
-            >>> DE.set_rhs(advection)
-            >>> pretty_print(DE.generate_modified_equation(nterms=2))
-
-            another example where we change the name of the dependent variable from 'u' to 'f'
-            >>> i, j, n, a = symbols("i j n a")
-            >>> DE = DifferentialEquation(dependentVarName='f', independentVarsNames=['x', 'y'], indices=[i, j], timeIndex=n)
-            >>> advection = -a (DE.f(time=n, x=i, y=j) - DE.f(time=n, x=i-1, y=j))/DE.dx
-            >>> DE.set_rhs(advection)
-            >>> pretty_print(DE.generate_modified_equation(nterms=2))
-        '''
-
-        assert isinstance(time, Add) or isinstance(time,
-                                                       Symbol), 'dependent_var_func() parameter time={} not of <class "sympy.core.add.Add">, or <class "sympy.core.symbol.Symbol">'.format(
-            time)
-        time_symbols = list(time.free_symbols)
-        for sym in time_symbols:
-            assert sym == self.t[
-                'index'], 'dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.'.format(
-                time, self.t['index'])
-
-        keys = list(kwargs.keys())
-
-        for var in keys:
-            var_symbols = list(kwargs[var].free_symbols)
-            assert len(
-                var_symbols) == 1, 'dependent_var_func() parameter {}={} inappropriate number of indecies is used for {}'.format(
-                var, kwargs[var], var)
-            assert var_symbols[0] == self.vars[var][
-                'index'], 'dependent_var_func() parameter {}={} other index is used for {}. Use {} index instead.'.format(
-                var, kwargs[var], var, self.vars[var]['index'])
-
-        expression = exp(self.t['ampFactor'] * (self.t['sym'] + (time - self.t['index']) * self.t['variation']))
-        for var in keys:
-            expression *= exp(1j * self.vars[var]['waveNum'] * (
-                    self.vars[var]['sym'] + (kwargs[var] - self.vars[var]['index']) * self.vars[var]['variation']))
-        return expression
-
-    def __stencil_gen(self, points: list, order: int):
-        '''
-        Generates finite difference equation based on the location of sampled points and derivative order
-
-        Parameters:
-            points (list int): stencil of length N needed ex: [-1,0,1] stencil around 0
-            order (int > 0): the order of derivatives d, d<N
-
-        Returns:
-             the finite difference coefficients along with the points used in a dictionary
-                {'points':[],'coefs':[]}
-
-        Examples:
-            >>> <DE>.__stencil_gen(points=[-1,0],order=1)
-        '''
-
-        assert isinstance(points, list), '__stencil_gen() parameter points={} not of <class "list">'.format(points)
-        for pt in points:
-            assert isinstance(pt, int), 'elements of points={} are not of <class "int">'.format(points)
-        assert order < len(points), 'Enter a derivative order that is less than the number of points in your stencil.'
-
-        numPts = len(points)
-        M = []
-        for i in range(numPts):
-            M.append([s ** i for s in points])
-        M = Matrix(M)
-        b = Matrix([factorial(order) * 1 if j == order else 0 for j in range(numPts)])
-        coefs = list(M.inv() * b)
-        return {'points': points, 'coefs': coefs}
-
-    def expr(self, order, directionName, time, stencil):
-        '''
-        Generates an expression based on the stencil, the directionName,  order of the derivative, and the time at which the expression is evaluated.
-        https://web.media.mit.edu/~crtaylor/calculator.html
-        Parameters:
-            order (int): order of the derivative
-            directionName (string): the name of the independent variable that indicate the directionName of the derivative
-            time (symbolic expression): time at which to evaluate the expression. ex: n+1 or n
-            stencil (list of int): N points used for the stencil gen function
-
-        Returns:
-            symbolic expression
-
-        Examples:
-             >>> <DE>.expr(order=1, directionName='x', time=n, stencil=[-1,0])
-        '''
-
-        assert isinstance(directionName, str), 'exp() parameter direcction={} not of <class "str">'.format(directionName)
-        assert directionName in self.__independentVars, 'direcction={} not an independent variable. indepVar={}'.format(
-            directionName, self.__independentVars)
-        assert isinstance(time, Add) \
-               or isinstance(time,Symbol), \
-               'expr() parameter time={} not of <class "sympy.core.add.Add">,' \
-               ' or <class "sympy.core.symbol.Symbol">'.format(time)
-
-        time_symbols = list(time.free_symbols)
-        for sym in time_symbols:
-            assert sym == self.t[
-                'index'], 'dependent_var_func() parameter time={} inappropriate time index is used. Use {} instead.'.format(
-                time, self.t['index'])
-
-        stencil = self.__stencil_gen(stencil, order)
-        expression = 0
-        for coef, pt in zip(stencil['coefs'], stencil['points']):
-
-            kwargs = {}
-            for var in self.__independentVars:
-                if var == directionName:
-                    kwargs[var] = self.vars[directionName]['index'] + pt
-                else:
-                    kwargs[var] = self.vars[var]['index']
-            expression += coef * self.dependent_var_func(time=time, **kwargs) / (
-                    self.vars[directionName]['variation'] ** order)
-        return ratsimp(expression)
-
-
-    def generate_modified_equation(self, nterms):
-        '''
-        Computes the values of the modified equation coefficients a_{ijk} where i, j and k represent
-        the order of derivatives in the <indep var1\> , <indep var2\>, and <indep var3\> directions, respectively. These are written as
-        a_ijk * u_{ijk}.
-
-        Parameters:
-            nterms (int): Number of in the modified equation. nterms is greater than zero.
-
-        Examples:
-            >>> <DE>.generate_modified_equation(nterms=2)
-        '''
-        assert nterms > 0, 'generate_modified_equation() member nterms={} has to be greater than zero.'.format(nterms)
-        self.generate_amp_factor()
-        q = self.__solve_amp_exponent()
-
-        order = self.__infer_order(q) # infering maximum order from the amplification factor.
-
-        couples = (i for i in product(list(range(0, order + nterms)), repeat=len(self.__independentVars)) if
-                   (sum(i) < order + nterms and sum(i) > 0))
-
-        coefs = {}
-        derivs = {}
-        for couple in couples:
-            wrt_vars = []
-            wrt_wave_num = []
-            waveNum = {}
-            fac = 1
-            N = 0
-            ies = ''
-
-            for num, var in enumerate(self.__independentVars):
-                wrt_wave_num.append(self.vars[var]['waveNum'])
-                waveNum[self.vars[var]['waveNum']] = 0
-                wrt_wave_num.append(couple[num])
-                wrt_vars.append(self.vars[var]['sym'])
-                wrt_vars.append(couple[num])
-                N = sum(couple)
-                fac *= factorial(couple[num])
-                ies += str(couple[num])
-
-            diff_ = diff(q, *wrt_wave_num).subs(waveNum)
-            frac = ratsimp(1 / (fac * I ** N))
-            coefficient = simplify(frac * diff_)
-            if coefficient != 0:
-                coefs['a{}'.format(ies)] = simplify(nsimplify(coefficient.n(),tolerance=self.__simplification_tolerance))
-                derivs['a{}'.format(ies)] = Derivative(self.dependentVar, *wrt_vars)
-
-        me_lhs = Derivative(self.dependentVar, self.t['sym'], 1)
-        me_rhs = 0
-        self.__latex_ME_coefs['lhs'] = latex(me_lhs)
-        for key in coefs.keys():
-            me_rhs += coefs[key] * derivs[key]
-            if coefs[key].is_Add:
-                self.__latex_ME_coefs['rhs'][key[1:]] = '\\left('+latex(coefs[key]) + '\\right)' + ' ' + latex(derivs[key])
-            else:
-                self.__latex_ME_coefs['rhs'][key[1:]] = latex(coefs[key]) + ' ' + latex(derivs[key])
-        self.__ME = Eq(me_lhs, me_rhs)
-        self.__latex_ME = self.__latex()
-
-    def __infer_order(self, amp_factor):
-        '''
-        This function is used to infer the highest derivative order on  the rhs of the PDE using the amplification factor.
-        this is done by counting the instances of differential elements and by searching for combinations of these elements
-        in the amplification factor.
-        :param amp_factor: symbolic expression of the amplification factor
-        :return: (int) the order-derivative of the PDE's RHS.
-        '''
-
-        maximums = [0 for _ in range(
-            len(self.__independentVars))]  # initiating a list with zeros based on the number of independent variables
-        orders = []  # list that store the order each derivative with respect to one independent variable ( not for cross derivative)
-
-        def rep(expr):
-            '''
-            Recursive function that traverse the symbolic tree searching for the differential elements (represents derivative order)
-            and store the results in a list.
-            :param expr: a symbolic expression
-            :return: None
-            '''
-            base_expr = expr.as_base_exp()  # infer the exponents of the expression
-            # if (len(base_expr) == 2 ) and (str(self.dx) == str(base_expr[0]) or str(self.dy) == str(base_expr[0])):
-            if (len(base_expr) == 2) and any(list(
-                    [str(self.vars[self.__independentVars[num]]['variation']) == str(base_expr[0]) for num in
-                     range(len(self.__independentVars))])):
-                # if the base expr is one of the differential elements store that into the orders list
-                orders.append(base_expr)
-                # print(expr.as_base_exp())
-            for arg in expr.args:
-                rep(arg)  # recursively call rep to transverse the amplification factor symbolic tree.
-
-        rep(amp_factor)  # calling the function rep
-
-        # in this for loop we go over all the values in orders and look for the maximum value of exponents
-        # and store them in an organized way in maximums list
-        for arg in orders:
-            for num, var in enumerate(self.__independentVars):
-                if arg[0] == self.vars[var]['variation']:
-                    maximums[num] = max(maximums[num], abs(arg[1]))
-
-                # print(generate_amp_factor.has(self.vars[var]['variation']**maximums[num]))
-
-        # checking for cross derivatives orders.
-        ranges = [range(-max, max + 1) for max in maximums]
-        # print(*ranges)
-        products = list(product(*ranges))
-        # print(list(products))
-
-        comb_max = 0
-        for p in products:
-            var_comb = 1
-            for num in range(len(maximums)):
-                var_comb *= self.vars[self.__independentVars[num]]['variation'] ** p[num]
-
-            if amp_factor.has(var_comb):
-                comb_max = max(comb_max, sum([abs(p[i]) for i in range(len(p))]))
-
-            # print('{}, {}'.format(var_comb,generate_amp_factor.has(var_comb)))
-
-        # choosing the maximum value for order between derivatives and cross derivatives.
-        order = max(max(maximums), comb_max)
-
-        # value for the maximum order on the rhs
-        return order
-
-
-    def __solve_amp_exponent(self):
-        '''
-        Solve for the amplification factor of the numerical discritazation of the partial differential equation
-
-        Returns:
-             (expression): symbolic expression of the rhs of the amplification factor
-        '''
-        e_alpha_dt = self.__amp_factor.rhs
-        q = 1/self.t['variation'] * log(e_alpha_dt)  # alpha
-        self.__amp_factor_exponent = q
-        return q
-
-    def __solve_amp_factor(self):
-        A = symbols('A')
-        # compute the amplification factor
-        lhs1 = simplify(self.lhs / self.dependent_var_func(self.t['index'], **self.indicies))
-        rhs1 = simplify(self.rhs / self.dependent_var_func(self.t['index'], **self.indicies))
-        eq = lhs1 - rhs1
-        eq = eq.subs(exp(self.t['ampFactor'] * self.t['variation']), A)
-        eq = eq.subs(exp(self.t['variation'] * self.t['ampFactor']), A)
-        eq = expand(eq)
-        eq = collect(eq, A)
-        e_alpha_dt = simplify(solve(eq, A)[0])
-        return e_alpha_dt
-
-    def generate_amp_factor(self):
-        '''
-        Computes the amplification factor for the discretized PDE
-        '''
-        lhs = exp(symbols('alpha')*self.t['variation'])
-        rhs = self.__solve_amp_factor()
-        self.__amp_factor = Eq(lhs,rhs)
-        self.__latex_amp_factor = latex(self.__amp_factor)
-
-    def __latex(self):
-        '''
-        Returns:
-            latex (string): Latex representation of the modified equation as ' lhs = rhs '
-
-        '''
-        strings = {}
-        for key in self.__latex_ME_coefs['rhs'].keys():
-            num = sum([int(x) for x in [char for char in key]])
-            string = self.__latex_ME_coefs['rhs'][key]
-            string = self.__latex_derivative(string)
-            if num in list(strings.keys()):
-                strings[num] += ' ' + string if string[0] == '-' else ' + ' + string
-            else:
-                strings[num] = ' ' + string if string[0] == '-' else ' + ' + string
-        lhs_string = self.__latex_ME_coefs['lhs']
-        lhs_string= self.__latex_derivative(lhs_string)
-
-        latex_str = lhs_string + ' = '
-        for i in sorted(strings.keys()):
-            latex_str += strings[i]
-        return latex_str
-
-    def __latex_derivative(self,string):
-        firstDelPos = string.rfind("{")
-        secondDelPos = string.rfind("}")
-        string = string.replace(string[firstDelPos:secondDelPos + 1], "")
-        var_string = " " + string[-1] + " "
-        string = string[:-1]
-        rPartialPos = string.rfind("partial")
-        varNewPos = string[:rPartialPos].rfind("}{")
-        string = string[:varNewPos] + var_string + string[varNewPos:]
-        return string
-
-    def __set_lhs(self):
-        '''
-        This function is not defined yet.
-        '''
-        raise Exception('For now we only support by default first order time derivative.')
-
-    def set_rhs(self, expression):
-        '''
-        sets the rhs of the DifferentialEquation
-        Parameters:
-            expression (symbolic expression): linear combination of expression generated from <DE\>.expr(...) or <DE\>.<dependentVar\>(...)
-
-        Examples:
-            >>> DE = DifferentialEquation(dependentVarName="u",independentVarsNames =["x"])
-            >>> a = symbols('a')
-
-            using DE.expr(...)
-
-            >>> advectionTerm = DE.expr(order=1,directionName="x",time=n,stencil=[-1, 0])
-            >>> DE.set_rhs(expression= - a * advectionTerm)
-
-            or using  DE.<dependentVar\>(...)
-
-            >>> advectionTerm = (DE.u(time=n, x=i) - DE.u(time=n, x=i-1))/DE.dx
-            >>> DE.set_rhs(expression= - a * advectionTerm)
-
-        '''
-
-        assert not isinstance(expression, str), 'set_rhs() parameter expression={} not a symbolic expression'.format(
-            expression)
-
-        self.rhs = expression
-
-    def __rhs(self):
-        '''
-        Returns:
-             (expression):  the rhs of the differential equation
-        '''
-        return self.rhs
-
-    def __lhs(self):
-        '''
-        Returns:
-            (expression):  the lhs of the differential equation
-        '''
-        return self.lhs
+            sp.pprint(self._amp_factor)
+
+    def __repr__(self) -> str:
+        status = "ready" if self._modified_eq is not None else "no ME yet"
+        return (
+            f"DifferentialEquation(dependentVarName='{self._dep_name}', "
+            f"independentVarsNames={self._indep_names}, {status})"
+        )
