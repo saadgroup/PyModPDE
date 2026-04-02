@@ -3,5 +3,5 @@ ipywidgets==7.7.0
 matplotlib==3.5.2
 numpy==1.22.4
 scipy==1.8.1
-setuptools==61.2.0
+setuptools==65.5.1
 sympy==1.10.1
